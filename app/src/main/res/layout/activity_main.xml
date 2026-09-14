@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_main"
+    android:fitsSystemWindows="true">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/primary"
+        android:elevation="3dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvAppTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/prompt_medium"
+            android:paddingVertical="4dp"
+            android:text="@string/title_home"
+            android:textColor="@color/text_white"
+            android:textSize="22sp" />
+
+        <!-- Button to open dialpad -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialpad"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:backgroundTint="#1976D2"
+            android:fontFamily="@font/prompt_regular"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/btn_dialpad"
+            android:textColor="@color/text_white"
+            android:textSize="16sp"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_dialpad"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="20dp"
+            app:iconTint="@color/text_white"
+            app:strokeColor="@color/text_white"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <!-- Default Dialer Warning Banner (hidden when already default) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardDefaultDialerPrompt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#FFF3E0"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/prompt_regular"
+                android:text="@string/set_default_dialer_banner"
+                android:textColor="#E65100"
+                android:textSize="15sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSetDefaultDialer"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:backgroundTint="#EF6C00"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="@string/btn_set_default_dialer"
+                android:textColor="@color/text_white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Empty State -->
+    <TextView
+        android:id="@+id/tvEmptyContacts"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/prompt_regular"
+        android:gravity="center"
+        android:padding="24dp"
+        android:text="@string/empty_contacts"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
+
+    <!-- 6-Contact Grid (2 columns x 3 rows) with clear breathing room -->
+    <GridLayout
+        android:id="@+id/gridContacts"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="6dp"
+        android:layout_marginVertical="4dp"
+        android:columnCount="2"
+        android:rowCount="3"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
+
+    <!-- Search Results List (Overlaid on grid area, visible during search) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSearchResults"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
+
+    <!-- No Search Results Found Message -->
+    <TextView
+        android:id="@+id/tvNoSearchResults"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/prompt_regular"
+        android:gravity="center"
+        android:padding="24dp"
+        android:text="ไม่พบรายชื่อหรือเบอร์ที่ค้นหา"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
+
+    <!-- Bottom Navigation Bar (Arrow buttons and center search bar) -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Previous Page Arrow Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrevPage"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="56dp"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/btn_nav_bg"
+            android:contentDescription="@string/btn_prev_page"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:cornerRadius="26dp"
+            app:icon="@drawable/ic_arrow_back"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="28dp"
+            app:iconTint="@color/text_white" />
+
+        <!-- Search Bar in Center -->
+        <LinearLayout
+            android:id="@+id/searchContainer"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginHorizontal="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_search_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="ค้นหา"
+                android:src="@drawable/ic_search"
+                app:tint="@color/text_secondary" />
+
+            <EditText
+                android:id="@+id/etSearchContact"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:fontFamily="@font/prompt_regular"
+                android:hint="ค้นหาชื่อหรือเบอร์..."
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/btnClearSearch"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="ล้างคำค้นหา"
+                android:padding="6dp"
+                android:src="@drawable/ic_clear"
+                android:visibility="gone"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Next Page Arrow Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNextPage"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="56dp"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/btn_nav_bg"
+            android:contentDescription="@string/btn_next_page"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:cornerRadius="26dp"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="28dp"
+            app:iconTint="@color/text_white" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

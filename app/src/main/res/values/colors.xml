@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Theme Colors -->
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="primary_light">#E3F2FD</color>
+    <color name="accent">#FF9800</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_main">#F4F6F9</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_incoming">#102027</color>
+    <color name="bg_ongoing">#102027</color>
+
+    <!-- High-Contrast Call Buttons -->
+    <color name="btn_answer_green">#2E7D32</color>
+    <color name="btn_answer_green_pressed">#1B5E20</color>
+    <color name="btn_end_red">#D32F2F</color>
+    <color name="btn_end_red_pressed">#B71C1C</color>
+
+    <!-- Navigation and Functional Buttons -->
+    <color name="btn_nav_bg">#1976D2</color>
+    <color name="btn_nav_text">#FFFFFF</color>
+    <color name="btn_nav_disabled">#CFD8DC</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#111827</color>
+    <color name="text_secondary">#4B5563</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_hint">#9E9E9E</color>
+
+    <!-- Contact Circle Colors (for placeholder avatars) -->
+    <color name="avatar_color_1">#EF5350</color>
+    <color name="avatar_color_2">#AB47BC</color>
+    <color name="avatar_color_3">#5C6BC0</color>
+    <color name="avatar_color_4">#26A69A</color>
+    <color name="avatar_color_5">#FFA726</color>
+    <color name="avatar_color_6">#8D6E63</color>
+    <color name="avatar_border">#1976D2</color>
+</resources>

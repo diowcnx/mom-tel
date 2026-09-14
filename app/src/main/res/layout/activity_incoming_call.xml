@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_incoming"
+    android:fitsSystemWindows="true"
+    android:padding="20dp">
+
+    <!-- Top Status / Call State -->
+    <TextView
+        android:id="@+id/tvIncomingCallStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/prompt_regular"
+        android:text="@string/incoming_call_title"
+        android:textColor="#81D4FA"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Center Contact Profile -->
+    <LinearLayout
+        android:id="@+id/layoutCallerInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/btnDecline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvIncomingCallStatus">
+
+        <!-- Giant Circular Avatar -->
+        <FrameLayout
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:id="@+id/viewIncomingAvatarBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_contact_circle" />
+
+            <TextView
+                android:id="@+id/tvIncomingAvatarInitial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/prompt_medium"
+                android:gravity="center"
+                android:textColor="@color/text_white"
+                android:textSize="56sp"
+                tools:text="ม" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgIncomingAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="3dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.CircleImage"
+                tools:src="@drawable/ic_person" />
+        </FrameLayout>
+
+        <!-- Caller Name (Prompt Medium) -->
+        <TextView
+            android:id="@+id/tvIncomingCallerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/prompt_medium"
+            android:gravity="center"
+            android:textColor="@color/text_white"
+            android:textSize="30sp"
+            tools:text="ลูกสาว (แป้ง)" />
+
+        <!-- Caller Phone Number (Prompt Regular) -->
+        <TextView
+            android:id="@+id/tvIncomingCallerNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/prompt_regular"
+            android:gravity="center"
+            android:textColor="#CFD8DC"
+            android:textSize="24sp"
+            tools:text="081-234-5678" />
+
+    </LinearLayout>
+
+    <!-- Bottom Giant Action Buttons: Perfectly Aligned & Symmetrical Chain -->
+    <!-- Decline Button (ไม่รับสาย) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDecline"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="@font/prompt_medium"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:ellipsize="none"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:text="@string/btn_decline"
+        android:textColor="@color/text_white"
+        android:textSize="18sp"
+        app:backgroundTint="@color/btn_end_red"
+        app:cornerRadius="36dp"
+        app:strokeColor="#E57373"
+        app:strokeWidth="2dp"
+        app:rippleColor="#80FFFFFF"
+        app:icon="@drawable/ic_call_end"
+        app:iconGravity="textStart"
+        app:iconPadding="6dp"
+        app:iconSize="28dp"
+        app:iconTint="@color/text_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnAnswer"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Answer Button (รับสาย) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAnswer"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="@font/prompt_medium"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:ellipsize="none"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:text="@string/btn_answer"
+        android:textColor="@color/text_white"
+        android:textSize="18sp"
+        app:backgroundTint="@color/btn_answer_green"
+        app:cornerRadius="36dp"
+        app:strokeColor="#4CAF50"
+        app:strokeWidth="2dp"
+        app:rippleColor="#80FFFFFF"
+        app:icon="@drawable/ic_call"
+        app:iconGravity="textStart"
+        app:iconPadding="6dp"
+        app:iconSize="28dp"
+        app:iconTint="@color/text_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnDecline"
+        app:layout_constraintTop_toTopOf="@id/btnDecline" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

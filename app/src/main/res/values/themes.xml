@@ -1,0 +1,39 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ElderPhone" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/text_white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent</item>
+        <item name="colorOnSecondary">@color/text_primary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowBackground">@color/bg_main</item>
+
+        <!-- Google Prompt Typography -->
+        <item name="fontFamily">@font/prompt</item>
+        <item name="android:fontFamily">@font/prompt</item>
+    </style>
+
+    <!-- Full Screen Call Theme -->
+    <style name="Theme.ElderPhone.FullScreenCall" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@color/bg_incoming</item>
+        <item name="android:statusBarColor">@color/bg_incoming</item>
+        <item name="android:navigationBarColor">@color/bg_incoming</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowShowWallpaper">false</item>
+
+        <!-- Google Prompt Typography -->
+        <item name="fontFamily">@font/prompt</item>
+        <item name="android:fontFamily">@font/prompt</item>
+    </style>
+
+    <!-- Shape Appearance for Circle Image -->
+    <style name="ShapeAppearance.ElderPhone.CircleImage" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_main"
+    android:fitsSystemWindows="true"
+    android:padding="16dp">
+
+    <!-- Top Navigation Header -->
+    <ImageButton
+        android:id="@+id/btnDialpadBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/btn_back"
+        android:src="@drawable/ic_arrow_back"
+        app:layout_constraintBottom_toBottomOf="@id/tvDialpadTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvDialpadTitle"
+        app:tint="@color/primary" />
+
+    <TextView
+        android:id="@+id/tvDialpadTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/prompt_medium"
+        android:gravity="center"
+        android:text="@string/dialpad_title"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Number Display & Backspace Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardDisplay"
+        android:layout_width="0dp"
+        android:layout_height="68dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="2dp"
+        app:strokeColor="#D0D7DE"
+        app:strokeWidth="1.5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDialpadTitle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/tvDialedNumber"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="start"
+                android:fontFamily="@font/prompt_medium"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textSize="28sp" />
+
+            <ImageButton
+                android:id="@+id/btnBackspace"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="ลบตัวเลข"
+                android:src="@drawable/ic_backspace"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 3x4 Dialpad Tile Grid (Large Square/Tile Buttons with Spacing and Color) -->
+    <LinearLayout
+        android:id="@+id/layoutDialpadGrid"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        android:orientation="vertical"
+        android:weightSum="4"
+        app:layout_constraintBottom_toTopOf="@id/btnDialpadCall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardDisplay">
+
+        <!-- Row 1: 1, 2, 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey1"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="1"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey2"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="2"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey3"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="3"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+        </LinearLayout>
+
+        <!-- Row 2: 4, 5, 6 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey4"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="4"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey5"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="5"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey6"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="6"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+        </LinearLayout>
+
+        <!-- Row 3: 7, 8, 9 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey7"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="7"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey8"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="8"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey9"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="9"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+        </LinearLayout>
+
+        <!-- Row 4: *, 0 (+), # -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyStar"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:contentDescription="ดอกจัน"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:backgroundTint="#ECEFF1"
+                app:cornerRadius="18dp"
+                app:icon="@drawable/ic_dialpad_star"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="36dp"
+                app:iconTint="#37474F"
+                app:rippleColor="#26000000"
+                app:strokeColor="#CFD8DC"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKey0"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="0"
+                android:textColor="#0D47A1"
+                android:textSize="40sp"
+                app:backgroundTint="#E3F2FD"
+                app:cornerRadius="18dp"
+                app:rippleColor="#260D47A1"
+                app:strokeColor="#90CAF9"
+                app:strokeWidth="1.5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnKeyHash"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/prompt_medium"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="#"
+                android:textColor="#37474F"
+                android:textSize="40sp"
+                app:backgroundTint="#ECEFF1"
+                app:cornerRadius="18dp"
+                app:rippleColor="#26000000"
+                app:strokeColor="#CFD8DC"
+                app:strokeWidth="1.5dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Giant Call Button (Matching Senior Friendly Design) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialpadCall"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginBottom="12dp"
+        android:fontFamily="@font/prompt_medium"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/btn_call"
+        android:textColor="@color/text_white"
+        android:textSize="22sp"
+        app:backgroundTint="@color/btn_answer_green"
+        app:cornerRadius="22dp"
+        app:strokeColor="#4CAF50"
+        app:strokeWidth="2dp"
+        app:rippleColor="#80FFFFFF"
+        app:icon="@drawable/ic_call"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconSize="28dp"
+        app:iconTint="@color/text_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">โทรศัพท์</string>
+    <string name="title_home">สมุดโทรศัพท์</string>
+
+    <!-- Permissions and Default Dialer Prompts -->
+    <string name="set_default_dialer_banner">กรุณาตั้งเป็นแอปโทรศัพท์หลักของเครื่อง เพื่อให้สามารถรับสายและโทรออกได้อย่างสมบูรณ์</string>
+    <string name="btn_set_default_dialer">ตั้งเป็นแอปโทรศัพท์หลัก</string>
+    <string name="permission_required_message">แอปจำเป็นต้องขอสิทธิ์การโทรและเข้าถึงรายชื่อเพื่อแสดงรูปและโทรหาคนที่คุณต้องการ</string>
+    <string name="grant_permission">อนุญาตสิทธิ์</string>
+
+    <!-- Navigation -->
+    <string name="btn_prev_page">◀ หน้าก่อน</string>
+    <string name="btn_next_page">หน้าถัดไป ▶</string>
+    <string name="page_indicator">หน้า %1$d จาก %2$d</string>
+    <string name="btn_dialpad">แป้นกดเบอร์</string>
+    <string name="btn_back">ย้อนกลับ</string>
+
+    <!-- Calling & Contacts -->
+    <string name="empty_contacts">ยังไม่มีรายชื่อผู้ติดต่อ\nกรุณาเพิ่มเบอร์โทรศัพท์ในเครื่อง</string>
+    <string name="calling_contact">กำลังโทรหา: %1$s</string>
+    <string name="unknown_caller">เบอร์โทรเข้า</string>
+    <string name="unknown_caller_new">เบอร์ใหม่โทรเข้ามา</string>
+    <string name="incoming_call_title">มีสายโทรเข้า</string>
+    <string name="ongoing_call_title">กำลังสนทนา</string>
+    <string name="call_ended">วางสายแล้ว</string>
+
+    <!-- Call Action Buttons -->
+    <string name="btn_answer">รับสาย</string>
+    <string name="btn_decline">ไม่รับสาย</string>
+    <string name="btn_hangup">วางสาย</string>
+    <string name="btn_speaker_on">ลำโพง</string>
+    <string name="btn_speaker_off">ปิดลำโพง</string>
+    <string name="btn_mute">ปิดไมค์</string>
+    <string name="btn_unmute">เปิดไมค์</string>
+
+    <!-- Dialpad -->
+    <string name="dialpad_title">กดเบอร์โทรศัพท์</string>
+    <string name="btn_call">โทรออก</string>
+
+    <!-- Photo Editing -->
+    <string name="btn_edit_photo">แก้ไขรูป</string>
+    <string name="dialog_title_edit_photo">แก้ไขรูปภาพผู้ติดต่อ</string>
+    <string name="option_take_photo">ถ่ายรูปใหม่ด้วยกล้อง</string>
+    <string name="option_choose_gallery">เลือกรูปจากคลังภาพ</string>
+    <string name="option_edit_system_contact">แก้ไขในสมุดโทรศัพท์เครื่อง</string>
+    <string name="option_remove_photo">ลบรูปภาพออก</string>
+    <string name="btn_cancel">ยกเลิก</string>
+    <string name="photo_updated_success">เปลี่ยนรูปผู้ติดต่อเรียบร้อยแล้ว</string>
+    <string name="photo_removed_success">ลบรูปผู้ติดต่อเรียบร้อยแล้ว</string>
+</resources>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="24dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="26dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="26dp"
+        android:paddingBottom="20dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/prompt_medium"
+            android:gravity="center"
+            android:text="แก้ไขชื่อผู้ติดต่อ"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp" />
+
+        <!-- Subtitle / Phone Number -->
+        <TextView
+            android:id="@+id/tvEditNamePhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:fontFamily="@font/prompt_regular"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            tools:text="เบอร์โทร: 098-4914245" />
+
+        <!-- First Name Label -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:fontFamily="@font/prompt_medium"
+            android:text="ชื่อ"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
+        <!-- First Name Input Field Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/bg_search_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_edit"
+                app:tint="@color/primary" />
+
+            <EditText
+                android:id="@+id/etEditContactFirstName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:background="@null"
+                android:fontFamily="@font/prompt_medium"
+                android:hint="กรอกชื่อ..."
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="18sp"
+                tools:text="สุชาติ" />
+        </LinearLayout>
+
+        <!-- Last Name Label -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:fontFamily="@font/prompt_medium"
+            android:text="นามสกุล (ถ้ามี)"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
+        <!-- Last Name Input Field Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_search_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_edit"
+                app:tint="@color/text_secondary" />
+
+            <EditText
+                android:id="@+id/etEditContactLastName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:background="@null"
+                android:fontFamily="@font/prompt_medium"
+                android:hint="กรอกนามสกุล..."
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="18sp"
+                tools:text="ศรีวิชัย" />
+        </LinearLayout>
+
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveName"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="บันทึกชื่อ"
+            android:textColor="@color/text_white"
+            android:textSize="18sp"
+            app:backgroundTint="@color/btn_answer_green"
+            app:cornerRadius="18dp"
+            app:rippleColor="#80FFFFFF" />
+
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelEditName"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:fontFamily="@font/prompt_regular"
+            android:text="ยกเลิก"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

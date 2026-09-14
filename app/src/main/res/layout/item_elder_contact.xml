@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardContact"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="11dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/bg_card"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="3dp"
+    app:strokeColor="#DCE2E6"
+    app:strokeWidth="1.5dp">
+
+    <!-- Center Contact Info (Avatar + Name) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp">
+
+        <!-- Circular Avatar Container (Clean, unobstructed) -->
+        <FrameLayout
+            android:layout_width="82dp"
+            android:layout_height="82dp"
+            android:layout_marginBottom="8dp">
+
+            <!-- Background shape / circle border -->
+            <View
+                android:id="@+id/viewAvatarBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_contact_circle" />
+
+            <!-- Initial Letter when no photo (Prompt Medium) -->
+            <TextView
+                android:id="@+id/tvAvatarInitial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/prompt_medium"
+                android:gravity="center"
+                android:textColor="@color/text_white"
+                android:textSize="36sp"
+                tools:text="ม" />
+
+            <!-- Circular Image View for photo -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="3dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.CircleImage" />
+        </FrameLayout>
+
+        <!-- Contact Name: Elegant Prompt Regular font -->
+        <TextView
+            android:id="@+id/tvContactName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/prompt_regular"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            tools:text="ลูกสาว (แป้ง)" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

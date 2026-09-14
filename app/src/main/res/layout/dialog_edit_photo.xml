@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Dialog Header: Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/prompt_medium"
+            android:gravity="center"
+            android:text="@string/dialog_title_edit_photo"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp" />
+
+        <!-- Contact Avatar & Name Preview -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="20dp"
+            android:background="#F5F7FA"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp">
+
+                <View
+                    android:id="@+id/dialogAvatarBg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_contact_circle" />
+
+                <TextView
+                    android:id="@+id/dialogAvatarInitial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/prompt_medium"
+                    android:gravity="center"
+                    android:textColor="@color/text_white"
+                    android:textSize="24sp"
+                    tools:text="ม" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/dialogAvatarImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="2dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.CircleImage" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/dialogContactName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/prompt_medium"
+                    android:maxLines="1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    tools:text="ลูกสาว (แป้ง)" />
+
+                <TextView
+                    android:id="@+id/dialogContactNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="@font/prompt_regular"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="15sp"
+                    tools:text="081-234-5678" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Option 1: Take Photo via Camera -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptionCamera"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#00897B"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/option_take_photo"
+            android:textColor="@color/text_white"
+            android:textSize="17sp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_camera"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/text_white" />
+
+        <!-- Option 2: Choose from Gallery -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptionGallery"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#1E88E5"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/option_choose_gallery"
+            android:textColor="@color/text_white"
+            android:textSize="17sp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_gallery"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/text_white" />
+
+        <!-- Option 3: Edit in System Contacts App -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptionSystemEdit"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#546E7A"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/option_edit_system_contact"
+            android:textColor="@color/text_white"
+            android:textSize="17sp"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_edit"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/text_white" />
+
+        <!-- Option 4: Remove Custom Photo (Visible only when photo is present) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOptionRemovePhoto"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="#EF5350"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/option_remove_photo"
+            android:textColor="@color/text_white"
+            android:textSize="17sp"
+            android:visibility="gone"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_delete"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconSize="24dp"
+            app:iconTint="@color/text_white"
+            tools:visibility="visible" />
+
+        <!-- Cancel Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelDialog"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:fontFamily="@font/prompt_regular"
+            android:text="@string/btn_cancel"
+            android:textColor="@color/text_secondary"
+            android:textSize="17sp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

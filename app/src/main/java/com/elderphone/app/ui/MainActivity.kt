@@ -1,6 +1,7 @@
 package com.elderphone.app.ui
 
 import android.Manifest
+import android.app.ActivityManager
 import android.app.role.RoleManager
 import android.content.ContentUris
 import android.content.Context
@@ -45,6 +46,14 @@ import kotlin.math.ceil
 import kotlin.math.max
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val PREFS_NAME = "elder_phone_prefs"
+        private const val KEY_FOREGROUND_LOCKED = "is_foreground_locked"
+    }
+
+    private var isForegroundLocked = false
 
     private lateinit var binding: ActivityMainBinding
     private val contacts = mutableListOf<ElderContact>()
@@ -95,6 +104,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        isForegroundLocked = prefs.getBoolean(KEY_FOREGROUND_LOCKED, false)
+        updateLockUi()
+
         setupButtons()
         setupSearch()
         setupBackNavigation()
@@ -108,6 +121,13 @@ class MainActivity : AppCompatActivity() {
         if (hasPermissions()) {
             loadContacts()
         }
+        if (isForegroundLocked && !isInLockTaskMode()) {
+            try {
+                startLockTask()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to resume lock task: ${e.message}")
+            }
+        }
     }
 
     private fun setupBackNavigation() {
@@ -120,8 +140,17 @@ class MainActivity : AppCompatActivity() {
                 if (isSearching || currentPage > 0) {
                     returnToFirstPage()
                 } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
+                    if (isForegroundLocked) {
+                        vibrate()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.msg_app_is_locked),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
                 }
             }
         })
@@ -152,6 +181,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
+        binding.btnToggleLock.setOnClickListener {
+            vibrate()
+            toggleForegroundLock()
+        }
+
         binding.tvAppTitle.setOnClickListener {
             returnToFirstPage()
         }
@@ -184,6 +218,56 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun toggleForegroundLock() {
+        val newState = !isForegroundLocked
+        isForegroundLocked = newState
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_FOREGROUND_LOCKED, newState)
+            .apply()
+
+        updateLockUi()
+
+        if (newState) {
+            try {
+                startLockTask()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to startLockTask: ${e.message}")
+            }
+            Toast.makeText(this, getString(R.string.msg_lock_enabled), Toast.LENGTH_SHORT).show()
+        } else {
+            try {
+                stopLockTask()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to stopLockTask: ${e.message}")
+            }
+            Toast.makeText(this, getString(R.string.msg_lock_disabled), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateLockUi() {
+        if (isForegroundLocked) {
+            binding.btnToggleLock.setImageResource(R.drawable.ic_lock)
+            binding.btnToggleLock.setColorFilter(Color.parseColor("#FFD54F"))
+            binding.btnToggleLock.contentDescription = getString(R.string.msg_app_is_locked)
+        } else {
+            binding.btnToggleLock.setImageResource(R.drawable.ic_lock_open)
+            binding.btnToggleLock.setColorFilter(Color.parseColor("#B3FFFFFF"))
+            binding.btnToggleLock.contentDescription = getString(R.string.cd_toggle_lock)
+        }
+    }
+
+    private fun isInLockTaskMode(): Boolean {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+        } else {
+            @Suppress("DEPRECATION")
+            am.isInLockTaskMode
+        }
+    }
+
 
     private fun setupSearch() {
         searchAdapter = SearchContactAdapter(this, emptyList()) { contact ->

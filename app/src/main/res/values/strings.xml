@@ -47,4 +47,11 @@
     <string name="btn_cancel">ยกเลิก</string>
     <string name="photo_updated_success">เปลี่ยนรูปผู้ติดต่อเรียบร้อยแล้ว</string>
     <string name="photo_removed_success">ลบรูปผู้ติดต่อเรียบร้อยแล้ว</string>
+
+    <!-- Foreground Lock -->
+    <string name="cd_toggle_lock">ล็อกหรือปลดล็อกหน้าจอแอป</string>
+    <string name="msg_lock_enabled">เปิดโหมดล็อกหน้าจอแล้ว (ป้องกันการเผลอกดออกจากแอป)</string>
+    <string name="msg_lock_disabled">ปลดล็อกหน้าจอแอปเรียบร้อยแล้ว</string>
+    <string name="msg_app_is_locked">ล็อกหน้าจอแอปอยู่ แตะไอคอนแม่กุญแจด้านบนเพื่อปลดล็อก</string>
 </resources>
+

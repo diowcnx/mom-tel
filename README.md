@@ -26,3 +26,7 @@
    adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
 
+## ข้อกำหนดการทดสอบ (Testing Guidelines)
+- **เบอร์สำหรับทดสอบ (Designated Test Number)**: `0984914245` (ใช้เฉพาะเบอร์นี้เท่านั้นในการทดสอบระบบสายเข้า/โทรออก)
+
+

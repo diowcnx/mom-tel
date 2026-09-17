@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Rect
@@ -39,6 +40,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
 import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import android.widget.PopupWindow
@@ -783,6 +786,8 @@ class MainActivity : AppCompatActivity() {
                 itemBinding.tvAvatarInitial.visibility = View.GONE
                 Glide.with(this)
                     .load(contact.photoUri)
+                    .signature(ObjectKey(contact.photoLastModified.toString()))
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .placeholder(R.drawable.ic_person)
                     .error(R.drawable.ic_person)
                     .into(itemBinding.imgAvatar)
@@ -794,11 +799,35 @@ class MainActivity : AppCompatActivity() {
                 itemBinding.viewAvatarBg.background.setTint(ContextCompat.getColor(this, colorRes))
             }
 
-            // Tap or long-press card to show action dialog (Call or Change Photo)
-            itemBinding.cardContact.setOnClickListener {
+            // Tap photo -> Call immediately
+            itemBinding.layoutContactPhoto.setOnClickListener {
+                vibrate()
+                callContact(contact)
+            }
+            itemBinding.layoutContactPhoto.setOnLongClickListener {
+                vibrate()
+                showContactActionDialog(contact)
+                true
+            }
+
+            // Tap name -> Show action dialog (Edit name, change photo, block, etc.)
+            itemBinding.layoutContactName.setOnClickListener {
+                vibrate()
                 showContactActionDialog(contact)
             }
+            itemBinding.layoutContactName.setOnLongClickListener {
+                vibrate()
+                showContactActionDialog(contact)
+                true
+            }
+
+            // Tap card background fallback -> Call
+            itemBinding.cardContact.setOnClickListener {
+                vibrate()
+                callContact(contact)
+            }
             itemBinding.cardContact.setOnLongClickListener {
+                vibrate()
                 showContactActionDialog(contact)
                 true
             }
@@ -824,6 +853,8 @@ class MainActivity : AppCompatActivity() {
             dialogBinding.actionAvatarInitial.visibility = View.GONE
             Glide.with(this)
                 .load(contact.photoUri)
+                .signature(ObjectKey(contact.photoLastModified.toString()))
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .placeholder(R.drawable.ic_person)
                 .error(R.drawable.ic_person)
                 .into(dialogBinding.actionAvatarImg)
@@ -982,6 +1013,8 @@ class MainActivity : AppCompatActivity() {
             dialogBinding.btnOptionRemovePhoto.visibility = View.VISIBLE
             Glide.with(this)
                 .load(contact.photoUri)
+                .signature(ObjectKey(contact.photoLastModified.toString()))
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .placeholder(R.drawable.ic_person)
                 .error(R.drawable.ic_person)
                 .into(dialogBinding.dialogAvatarImg)
@@ -1075,14 +1108,48 @@ class MainActivity : AppCompatActivity() {
         val contact = currentEditingContact ?: return
         Thread {
             try {
-                val inputStream = contentResolver.openInputStream(uri)
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream?.close()
+                val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                var bitmap: Bitmap? = if (bytes != null) BitmapFactory.decodeByteArray(bytes, 0, bytes.size) else null
 
-                if (bitmap != null) {
-                    val saved = ContactRepository.saveContactPhoto(this, contact, bitmap)
+                if (bitmap != null && bytes != null) {
+                    // Check and fix EXIF rotation if needed
+                    try {
+                        java.io.ByteArrayInputStream(bytes).use { exifStream ->
+                            val exif = android.media.ExifInterface(exifStream)
+                            val orientation = exif.getAttributeInt(
+                                android.media.ExifInterface.TAG_ORIENTATION,
+                                android.media.ExifInterface.ORIENTATION_NORMAL
+                            )
+                            val matrix = android.graphics.Matrix()
+                            when (orientation) {
+                                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                            }
+                            if (orientation == android.media.ExifInterface.ORIENTATION_ROTATE_90 ||
+                                orientation == android.media.ExifInterface.ORIENTATION_ROTATE_180 ||
+                                orientation == android.media.ExifInterface.ORIENTATION_ROTATE_270
+                            ) {
+                                bitmap = Bitmap.createBitmap(
+                                    bitmap!!, 0, 0, bitmap!!.width, bitmap!!.height, matrix, true
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w("MainActivity", "Failed to check EXIF orientation", e)
+                    }
+
+                    val saved = ContactRepository.saveContactPhoto(this, contact, bitmap!!)
                     runOnUiThread {
                         if (saved) {
+                            try {
+                                Glide.get(applicationContext).clearMemory()
+                            } catch (e: Exception) {}
+                            Thread {
+                                try {
+                                    Glide.get(applicationContext).clearDiskCache()
+                                } catch (e: Exception) {}
+                            }.start()
                             Toast.makeText(this, getString(R.string.photo_updated_success), Toast.LENGTH_SHORT).show()
                             loadContacts()
                         } else {
@@ -1104,6 +1171,14 @@ class MainActivity : AppCompatActivity() {
             val deleted = ContactRepository.deleteContactPhoto(this, contact)
             runOnUiThread {
                 if (deleted) {
+                    try {
+                        Glide.get(applicationContext).clearMemory()
+                    } catch (e: Exception) {}
+                    Thread {
+                        try {
+                            Glide.get(applicationContext).clearDiskCache()
+                        } catch (e: Exception) {}
+                    }.start()
                     Toast.makeText(this, getString(R.string.photo_removed_success), Toast.LENGTH_SHORT).show()
                     loadContacts()
                 }

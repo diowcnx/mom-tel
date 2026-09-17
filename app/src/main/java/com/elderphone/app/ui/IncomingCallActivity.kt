@@ -82,6 +82,8 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
                         binding.tvIncomingAvatarInitial.visibility = View.GONE
                         Glide.with(this)
                             .load(contact.photoUri)
+                            .signature(com.bumptech.glide.signature.ObjectKey(contact.photoLastModified.toString()))
+                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
                             .placeholder(R.drawable.ic_person)
                             .error(R.drawable.ic_person)
                             .into(binding.imgIncomingAvatar)

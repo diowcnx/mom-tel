@@ -131,11 +131,11 @@ object ContactRepository {
 
                         val customFile = getCustomPhotoFile(context, id)
                         val customFileByNum = getCustomPhotoFileByNumber(context, normalizedNumber)
-                        val resolvedPhotoUri = when {
-                            customFile.exists() -> Uri.fromFile(customFile).toString()
-                            customFileByNum.exists() -> Uri.fromFile(customFileByNum).toString()
-                            !photoUri.isNullOrBlank() -> photoUri
-                            else -> null
+                        val (resolvedPhotoUri, photoTime) = when {
+                            customFile.exists() -> Pair(Uri.fromFile(customFile).toString(), customFile.lastModified())
+                            customFileByNum.exists() -> Pair(Uri.fromFile(customFileByNum).toString(), customFileByNum.lastModified())
+                            !photoUri.isNullOrBlank() -> Pair(photoUri, 0L)
+                            else -> Pair(null, 0L)
                         }
 
                         contactsList.add(
@@ -146,7 +146,8 @@ object ContactRepository {
                                 photoUri = resolvedPhotoUri,
                                 isFavorite = isStarred,
                                 callCount = count,
-                                lastCallDate = lastDate
+                                lastCallDate = lastDate,
+                                photoLastModified = photoTime
                             )
                         )
                     }
@@ -203,18 +204,19 @@ object ContactRepository {
                     val norm = normalizePhoneNumber(number)
                     val customFile = getCustomPhotoFile(context, id)
                     val customFileByNum = getCustomPhotoFileByNumber(context, norm)
-                    val resolvedPhotoUri = when {
-                        customFile.exists() -> Uri.fromFile(customFile).toString()
-                        customFileByNum.exists() -> Uri.fromFile(customFileByNum).toString()
-                        !photoUri.isNullOrBlank() -> photoUri
-                        else -> null
+                    val (resolvedPhotoUri, photoTime) = when {
+                        customFile.exists() -> Pair(Uri.fromFile(customFile).toString(), customFile.lastModified())
+                        customFileByNum.exists() -> Pair(Uri.fromFile(customFileByNum).toString(), customFileByNum.lastModified())
+                        !photoUri.isNullOrBlank() -> Pair(photoUri, 0L)
+                        else -> Pair(null, 0L)
                     }
 
                     return ElderContact(
                         id = id,
                         name = name.ifBlank { number },
                         phoneNumber = number,
-                        photoUri = resolvedPhotoUri
+                        photoUri = resolvedPhotoUri,
+                        photoLastModified = photoTime
                     )
                 }
             }
@@ -243,16 +245,20 @@ object ContactRepository {
     fun saveContactPhoto(context: Context, contact: ElderContact, bitmap: Bitmap): Boolean {
         return try {
             val scaled = scaleBitmap(bitmap, 512)
+            val now = System.currentTimeMillis()
             val fileById = getCustomPhotoFile(context, contact.id)
             FileOutputStream(fileById).use { out ->
                 scaled.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
+            fileById.setLastModified(now)
+
             val norm = normalizePhoneNumber(contact.phoneNumber)
             if (norm.isNotBlank()) {
                 val fileByNum = getCustomPhotoFileByNumber(context, norm)
                 FileOutputStream(fileByNum).use { out ->
                     scaled.compress(Bitmap.CompressFormat.JPEG, 90, out)
                 }
+                fileByNum.setLastModified(now)
             }
 
             // Also attempt system ContactsContract update

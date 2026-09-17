@@ -26,11 +26,16 @@
         android:paddingBottom="8dp">
 
         <!-- Rounded Rectangle Avatar Container (Large for elderly visibility) -->
+        <!-- Tap on Photo -> Call Immediately -->
         <FrameLayout
+            android:id="@+id/layoutContactPhoto"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
 
             <!-- Background shape / rounded rectangle -->
             <View
@@ -60,19 +65,31 @@
         </FrameLayout>
 
         <!-- Contact Name: Elegant Prompt Medium font -->
-        <TextView
-            android:id="@+id/tvContactName"
+        <!-- Tap on Name -> Show Menu Dialog -->
+        <LinearLayout
+            android:id="@+id/layoutContactName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="@font/prompt_medium"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
             android:gravity="center"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:textColor="@color/text_primary"
-            android:textSize="19sp"
-            android:paddingBottom="2dp"
-            tools:text="ลูกสาว (แป้ง)" />
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="4dp">
+
+            <TextView
+                android:id="@+id/tvContactName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/prompt_medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textSize="19sp"
+                tools:text="ลูกสาว (แป้ง)" />
+        </LinearLayout>
 
     </LinearLayout>
 

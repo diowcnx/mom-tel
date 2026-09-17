@@ -12,7 +12,7 @@
     <string name="btn_prev_page">◀ หน้าก่อน</string>
     <string name="btn_next_page">หน้าถัดไป ▶</string>
     <string name="page_indicator">หน้า %1$d จาก %2$d</string>
-    <string name="btn_dialpad">แป้นกดเบอร์</string>
+    <string name="btn_dialpad">แป้นกดตัวเลข</string>
     <string name="btn_back">ย้อนกลับ</string>
 
     <!-- Calling & Contacts -->

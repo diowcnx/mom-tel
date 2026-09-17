@@ -17,7 +17,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -49,28 +50,28 @@
             android:textColor="@color/text_white"
             android:textSize="22sp" />
 
-        <!-- Button to open dialpad (Compact Circle Icon Button) -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Button to open dialpad with clear text for elderly users -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDialpad"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="#1976D2"
-            app:cardCornerRadius="21dp"
-            app:cardElevation="2dp"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:backgroundTint="#1976D2"
+            android:fontFamily="@font/prompt_medium"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="14dp"
+            android:text="@string/btn_dialpad"
+            android:textColor="@color/text_white"
+            android:textSize="16sp"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_dialpad"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconSize="22dp"
+            app:iconTint="@color/text_white"
             app:strokeColor="@color/text_white"
-            app:strokeWidth="1.2dp">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/btn_dialpad"
-                android:padding="9dp"
-                android:src="@drawable/ic_dialpad"
-                app:tint="@color/text_white" />
-        </com.google.android.material.card.MaterialCardView>
+            app:strokeWidth="1.2dp" />
     </LinearLayout>
 
     <!-- Default Dialer Warning Banner (hidden when already default) -->

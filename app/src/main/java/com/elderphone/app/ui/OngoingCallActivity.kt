@@ -23,7 +23,7 @@ import java.util.Locale
 class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
 
     private lateinit var binding: ActivityOngoingCallBinding
-    private var isSpeakerOn = false
+    private var isSpeakerOn = true
     private var isMuted = false
 
     private val timerHandler = Handler(Looper.getMainLooper())
@@ -41,6 +41,7 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        android.util.Log.d("OngoingCallActivity", "onCreate called")
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         binding = ActivityOngoingCallBinding.inflate(layoutInflater)
@@ -50,10 +51,12 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
         displayCallerInfo()
         setupButtons()
         startCallTimer()
+        enableAutoSpeaker()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        android.util.Log.d("OngoingCallActivity", "onDestroy called")
         CallManager.unregisterCallback(this)
         timerHandler.removeCallbacks(timerRunnable)
     }
@@ -63,8 +66,8 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
     }
 
     private fun displayCallerInfo() {
-        val number = CallManager.getCallerNumber()
-        val displayName = CallManager.getCallerDisplayName()
+        val number = intent.getStringExtra("phone_number")?.ifBlank { null } ?: CallManager.getCallerNumber()
+        val displayName = intent.getStringExtra("display_name")?.ifBlank { null } ?: CallManager.getCallerDisplayName()
 
         Thread {
             val contact = if (number.isNotBlank()) {
@@ -156,16 +159,42 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
         }
     }
 
+    private fun enableAutoSpeaker() {
+        isSpeakerOn = true
+        updateSpeakerUi()
+        CallManager.setSpeakerphone(true, this)
+        timerHandler.postDelayed({
+            if (isSpeakerOn && !isFinishing && !isDestroyed) {
+                CallManager.setSpeakerphone(true, this)
+            }
+        }, 500)
+        timerHandler.postDelayed({
+            if (isSpeakerOn && !isFinishing && !isDestroyed) {
+                CallManager.setSpeakerphone(true, this)
+            }
+        }, 1200)
+    }
+
     override fun onCallStateChanged(state: Int) {
-        if (state == Call.STATE_DISCONNECTED) {
-            runOnUiThread {
-                Toast.makeText(this, getString(R.string.call_ended), Toast.LENGTH_SHORT).show()
-                finish()
+        android.util.Log.d("OngoingCallActivity", "onCallStateChanged: state=$state")
+        runOnUiThread {
+            when (state) {
+                Call.STATE_ACTIVE -> {
+                    if (isSpeakerOn) {
+                        CallManager.setSpeakerphone(true, this)
+                    }
+                }
+                Call.STATE_DISCONNECTED -> {
+                    android.util.Log.d("OngoingCallActivity", "finishing due to STATE_DISCONNECTED")
+                    Toast.makeText(this, getString(R.string.call_ended), Toast.LENGTH_SHORT).show()
+                    finish()
+                }
             }
         }
     }
 
     override fun onCallDisconnected() {
+        android.util.Log.d("OngoingCallActivity", "onCallDisconnected called -> finishing")
         runOnUiThread {
             Toast.makeText(this, getString(R.string.call_ended), Toast.LENGTH_SHORT).show()
             finish()

@@ -82,10 +82,10 @@ object CallManager {
             if (inCallService != null) {
                 val route = if (enable) CallAudioState.ROUTE_SPEAKER else CallAudioState.ROUTE_EARPIECE
                 inCallService?.setAudioRoute(route)
-            } else {
-                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                audioManager.isSpeakerphoneOn = enable
             }
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.isSpeakerphoneOn = enable
+            Log.d(TAG, "setSpeakerphone: enable=$enable (inCallService=${inCallService != null})")
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling speakerphone", e)
         }

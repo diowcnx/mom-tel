@@ -115,6 +115,7 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
         binding.btnAnswer.setOnClickListener {
             vibrate()
             CallManager.answer()
+            CallManager.setSpeakerphone(true, this)
             openOngoingCallScreen()
         }
 

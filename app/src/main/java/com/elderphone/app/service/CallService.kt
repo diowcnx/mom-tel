@@ -52,6 +52,12 @@ class CallService : InCallService() {
                 startActivity(intent)
             }
             Call.STATE_DIALING, Call.STATE_CONNECTING, Call.STATE_ACTIVE -> {
+                try {
+                    setAudioRoute(android.telecom.CallAudioState.ROUTE_SPEAKER)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to set speaker route in CallService", e)
+                }
+
                 // Launch ongoing call screen
                 val intent = Intent(this, OngoingCallActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -66,6 +72,11 @@ class CallService : InCallService() {
                 Log.d(TAG, "Unhandled call state: ${call.state}")
             }
         }
+    }
+
+    override fun onCallAudioStateChanged(audioState: android.telecom.CallAudioState?) {
+        super.onCallAudioStateChanged(audioState)
+        Log.d(TAG, "onCallAudioStateChanged: route = ${audioState?.route}")
     }
 
     override fun onCallRemoved(call: Call) {

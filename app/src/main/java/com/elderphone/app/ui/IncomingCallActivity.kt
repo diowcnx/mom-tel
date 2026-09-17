@@ -79,6 +79,7 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
 
                     if (!contact.photoUri.isNullOrBlank()) {
                         binding.imgIncomingAvatar.visibility = View.VISIBLE
+                        binding.imgIncomingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                         binding.tvIncomingAvatarInitial.visibility = View.GONE
                         Glide.with(this)
                             .load(contact.photoUri)
@@ -100,7 +101,9 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
                     binding.tvIncomingCallerName.text = displayName?.ifBlank { null } ?: number.ifBlank { "ไม่ทราบหมายเลข" }
                     binding.tvIncomingCallerNumber.text = if (displayName != null && displayName != number) number else ""
                     binding.imgIncomingAvatar.visibility = View.VISIBLE
+                    binding.imgIncomingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     binding.tvIncomingAvatarInitial.visibility = View.GONE
+                    binding.viewIncomingAvatarBg.background.setTint(ContextCompat.getColor(this, R.color.primary_dark))
                     binding.imgIncomingAvatar.setImageResource(R.drawable.ic_person)
                 }
             }

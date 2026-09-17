@@ -46,6 +46,8 @@ class CallService : InCallService() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP or
                             Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("phone_number", callerNumber)
+                    putExtra("display_name", call.details.callerDisplayName)
                 }
                 startActivity(intent)
             }
@@ -55,6 +57,8 @@ class CallService : InCallService() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP or
                             Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("phone_number", callerNumber)
+                    putExtra("display_name", call.details.callerDisplayName)
                 }
                 startActivity(intent)
             }

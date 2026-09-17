@@ -226,6 +226,24 @@ object ContactRepository {
             Log.e(TAG, "Error looking up contact by number: $number", e)
         }
 
+        // Fallback: search in getAllContacts by normalized number match
+        try {
+            val norm = normalizePhoneNumber(number)
+            if (norm.isNotBlank()) {
+                val all = getAllContacts(context)
+                val found = all.find { c ->
+                    val cNorm = normalizePhoneNumber(c.phoneNumber)
+                    cNorm == norm ||
+                    (cNorm.length >= 8 && norm.length >= 8 && (cNorm.endsWith(norm) || norm.endsWith(cNorm)))
+                }
+                if (found != null) {
+                    return found
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in fallback contact lookup for: $number", e)
+        }
+
         return null
     }
 

@@ -26,55 +26,68 @@
     <LinearLayout
         android:id="@+id/layoutCallerInfo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:gravity="center"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/btnDecline"
+        app:layout_constraintBottom_toTopOf="@id/btnBlockCaller"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvIncomingCallStatus">
 
-        <!-- Giant Circular Avatar -->
-        <FrameLayout
-            android:layout_width="140dp"
-            android:layout_height="140dp"
-            android:layout_marginBottom="20dp">
+        <!-- Giant Rounded Rectangle Avatar Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardIncomingAvatar"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="8dp"
+            app:strokeWidth="2.5dp"
+            app:strokeColor="#50FFFFFF"
+            app:cardBackgroundColor="@android:color/transparent">
 
-            <View
-                android:id="@+id/viewIncomingAvatarBg"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_contact_circle" />
+                android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/tvIncomingAvatarInitial"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fontFamily="@font/prompt_medium"
-                android:gravity="center"
-                android:textColor="@color/text_white"
-                android:textSize="56sp"
-                tools:text="ม" />
+                <View
+                    android:id="@+id/viewIncomingAvatarBg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_contact_rounded_rect_large" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/imgIncomingAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="3dp"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.CircleImage"
-                tools:src="@drawable/ic_person" />
-        </FrameLayout>
+                <TextView
+                    android:id="@+id/tvIncomingAvatarInitial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/prompt_medium"
+                    android:gravity="center"
+                    android:textColor="@color/text_white"
+                    android:textSize="84sp"
+                    tools:text="ม" />
 
-        <!-- Caller Name (Prompt Medium) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgIncomingAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.RoundedImageLarge"
+                    tools:src="@drawable/ic_person" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Caller Name (Prompt Medium) - VERY LARGE -->
         <TextView
             android:id="@+id/tvIncomingCallerName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
             android:fontFamily="@font/prompt_medium"
             android:gravity="center"
             android:textColor="@color/text_white"
-            android:textSize="30sp"
+            android:textSize="36sp"
+            android:maxLines="2"
+            android:ellipsize="end"
             tools:text="ลูกสาว (แป้ง)" />
 
         <!-- Caller Phone Number (Prompt Regular) -->

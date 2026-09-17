@@ -78,6 +78,7 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
 
                     if (!contact.photoUri.isNullOrBlank()) {
                         binding.imgOngoingAvatar.visibility = View.VISIBLE
+                        binding.imgOngoingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
                         binding.tvOngoingAvatarInitial.visibility = View.GONE
                         Glide.with(this)
                             .load(contact.photoUri)
@@ -97,7 +98,9 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
                     binding.tvOngoingCallerName.text = displayName?.ifBlank { null } ?: number.ifBlank { "กำลังสนทนา" }
                     binding.tvOngoingCallerNumber.text = if (displayName != null && displayName != number) number else ""
                     binding.imgOngoingAvatar.visibility = View.VISIBLE
+                    binding.imgOngoingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     binding.tvOngoingAvatarInitial.visibility = View.GONE
+                    binding.viewOngoingAvatarBg.background.setTint(ContextCompat.getColor(this, R.color.primary_dark))
                     binding.imgOngoingAvatar.setImageResource(R.drawable.ic_person)
                 }
             }

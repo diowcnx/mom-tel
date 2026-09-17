@@ -41,4 +41,9 @@
     <style name="ShapeAppearance.ElderPhone.RoundedImage" parent="">
         <item name="cornerSize">18dp</item>
     </style>
+
+    <!-- Shape Appearance for Extra Large Rounded Rectangle Image (for Call screens) -->
+    <style name="ShapeAppearance.ElderPhone.RoundedImageLarge" parent="">
+        <item name="cornerSize">24dp</item>
+    </style>
 </resources>

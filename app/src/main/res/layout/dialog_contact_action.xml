@@ -18,17 +18,17 @@
         android:paddingTop="28dp"
         android:paddingBottom="20dp">
 
-        <!-- Contact Avatar Container -->
+        <!-- Contact Avatar Container (Rounded Rectangle) -->
         <FrameLayout
-            android:layout_width="84dp"
-            android:layout_height="84dp"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
             android:layout_marginBottom="12dp">
 
             <View
                 android:id="@+id/actionAvatarBg"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_contact_circle" />
+                android:background="@drawable/bg_contact_rounded_rect" />
 
             <TextView
                 android:id="@+id/actionAvatarInitial"
@@ -37,16 +37,15 @@
                 android:fontFamily="@font/prompt_medium"
                 android:gravity="center"
                 android:textColor="@color/text_white"
-                android:textSize="38sp"
+                android:textSize="44sp"
                 tools:text="ส" />
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/actionAvatarImg"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="3dp"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.CircleImage" />
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.RoundedImage" />
         </FrameLayout>
 
         <!-- Contact Name -->
@@ -164,7 +163,22 @@
                 app:strokeWidth="1.5dp" />
         </LinearLayout>
 
-        <!-- 3. Cancel Button -->
+        <!-- 3. Block / Unblock Contact Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnActionToggleBlock"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/prompt_regular"
+            android:text="@string/btn_block_number"
+            android:textColor="#E53935"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_block"
+            app:iconTint="#E53935"
+            app:iconSize="18dp" />
+
+        <!-- 4. Cancel Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnActionCancel"
             style="@style/Widget.MaterialComponents.Button.TextButton"

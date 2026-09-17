@@ -56,5 +56,18 @@
     <string name="menu_lock_app">ล็อกหน้าจอแอป</string>
     <string name="menu_unlock_app">ปลดล็อกหน้าจอแอป</string>
     <string name="menu_exit_app">ออกจากแอป</string>
+    <string name="menu_blocked_numbers">เบอร์ที่ถูกบล็อก</string>
+
+    <!-- Blocked Numbers -->
+    <string name="btn_block_number">บล็อกเบอร์นี้</string>
+    <string name="dialog_blocked_title">จัดการเบอร์ที่บล็อก</string>
+    <string name="empty_blocked_numbers">ยังไม่มีเบอร์ที่ถูกบล็อก</string>
+    <string name="btn_add_block">เพิ่มเบอร์บล็อก</string>
+    <string name="hint_block_number">กรอกเบอร์โทรศัพท์ที่ต้องการบล็อก...</string>
+    <string name="unblock_success">ปลดบล็อกเบอร์เรียบร้อยแล้ว</string>
+    <string name="block_success">บล็อกเบอร์เรียบร้อยแล้ว</string>
+    <string name="block_confirm_title">ยืนยันการบล็อกเบอร์</string>
+    <string name="block_confirm_msg">ต้องการบล็อกเบอร์ %1$s ใช่หรือไม่?\n\nสายเรียกเข้าจากเบอร์นี้จะถูกตัดสายทิ้งโดยอัตโนมัติ ไม่ส่งเสียงรบกวน</string>
+    <string name="btn_confirm_block">บล็อกเบอร์</string>
 </resources>
 

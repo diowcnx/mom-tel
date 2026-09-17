@@ -4,6 +4,7 @@ import android.content.Intent
 import android.telecom.Call
 import android.telecom.InCallService
 import android.util.Log
+import com.elderphone.app.data.BlockedNumberManager
 import com.elderphone.app.ui.IncomingCallActivity
 import com.elderphone.app.ui.OngoingCallActivity
 
@@ -16,6 +17,25 @@ class CallService : InCallService() {
     override fun onCallAdded(call: Call) {
         super.onCallAdded(call)
         Log.d(TAG, "onCallAdded: state = ${call.state}")
+
+        // Check if incoming call is from a blocked number
+        val callerNumber = call.details.handle?.schemeSpecificPart ?: ""
+        if (call.state == Call.STATE_RINGING && callerNumber.isNotBlank()) {
+            if (BlockedNumberManager.isBlocked(this, callerNumber)) {
+                Log.i(TAG, "Blocked call from: $callerNumber - Auto-rejecting")
+                try {
+                    call.reject(false, null)
+                } catch (e: Exception) {
+                    try {
+                        call.disconnect()
+                    } catch (e2: Exception) {
+                        Log.e(TAG, "Failed to disconnect blocked call", e2)
+                    }
+                }
+                return
+            }
+        }
+
         CallManager.inCallService = this
         CallManager.setCall(call)
 

@@ -51,6 +51,43 @@
             android:layout_height="1dp"
             android:background="#F0F0F0" />
 
+        <!-- Blocked Numbers Option -->
+        <LinearLayout
+            android:id="@+id/itemBlockedNumbers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="14dp">
+
+            <ImageView
+                android:id="@+id/ivBlockedIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_block"
+                app:tint="#5C6BC0" />
+
+            <TextView
+                android:id="@+id/tvBlockedTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:fontFamily="@font/prompt_medium"
+                android:text="@string/menu_blocked_numbers"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F0F0" />
+
         <!-- Exit App Option -->
         <LinearLayout
             android:id="@+id/itemExit"

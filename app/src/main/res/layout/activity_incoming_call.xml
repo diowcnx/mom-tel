@@ -91,6 +91,24 @@
 
     </LinearLayout>
 
+    <!-- Block Number Button (บล็อกเบอร์นี้) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBlockCaller"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/prompt_regular"
+        android:text="@string/btn_block_number"
+        android:textColor="#EF9A9A"
+        android:textSize="15sp"
+        app:icon="@drawable/ic_block"
+        app:iconTint="#EF9A9A"
+        app:iconSize="20dp"
+        app:layout_constraintBottom_toTopOf="@id/btnDecline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <!-- Bottom Giant Action Buttons: Perfectly Aligned & Symmetrical Chain -->
     <!-- Decline Button (ไม่รับสาย) -->
     <com.google.android.material.button.MaterialButton

@@ -11,6 +11,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Rect
@@ -42,11 +43,13 @@ import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import android.widget.PopupWindow
 import com.elderphone.app.R
+import com.elderphone.app.data.BlockedNumberManager
 import com.elderphone.app.data.ContactRepository
 import com.elderphone.app.databinding.ActivityMainBinding
 import com.elderphone.app.databinding.DialogContactActionBinding
 import com.elderphone.app.databinding.DialogEditNameBinding
 import com.elderphone.app.databinding.DialogEditPhotoBinding
+import com.elderphone.app.databinding.DialogManageBlockedNumbersBinding
 import com.elderphone.app.databinding.ItemElderContactBinding
 import com.elderphone.app.databinding.PopoverLockMenuBinding
 import androidx.activity.OnBackPressedCallback
@@ -317,6 +320,12 @@ class MainActivity : AppCompatActivity() {
             toggleForegroundLock()
         }
 
+        popoverBinding.itemBlockedNumbers.setOnClickListener {
+            vibrate()
+            popupWindow.dismiss()
+            showBlockedNumbersDialog()
+        }
+
         popoverBinding.itemExit.setOnClickListener {
             vibrate()
             popupWindow.dismiss()
@@ -324,6 +333,63 @@ class MainActivity : AppCompatActivity() {
         }
 
         popupWindow.showAsDropDown(anchorView, 0, 10)
+    }
+
+    private fun showBlockedNumbersDialog() {
+        isNavigatingInternally = true
+        val dialogBinding = DialogManageBlockedNumbersBinding.inflate(layoutInflater)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setOnDismissListener {
+            isNavigatingInternally = false
+        }
+
+        fun refreshList() {
+            val list = BlockedNumberManager.getBlockedNumbers(this)
+            if (list.isEmpty()) {
+                dialogBinding.tvEmptyBlockedList.visibility = View.VISIBLE
+                dialogBinding.rvBlockedNumbers.visibility = View.GONE
+            } else {
+                dialogBinding.tvEmptyBlockedList.visibility = View.GONE
+                dialogBinding.rvBlockedNumbers.visibility = View.VISIBLE
+                val adapter = BlockedNumbersAdapter(list) { item ->
+                    vibrate()
+                    BlockedNumberManager.unblockNumber(this, item.number)
+                    Toast.makeText(this, getString(R.string.unblock_success), Toast.LENGTH_SHORT).show()
+                    refreshList()
+                }
+                dialogBinding.rvBlockedNumbers.layoutManager = LinearLayoutManager(this)
+                dialogBinding.rvBlockedNumbers.adapter = adapter
+            }
+        }
+
+        refreshList()
+
+        dialogBinding.btnAddBlockedNumber.setOnClickListener {
+            val input = dialogBinding.etBlockedNumberInput.text?.toString()?.trim() ?: ""
+            if (input.isNotBlank()) {
+                vibrate()
+                val added = BlockedNumberManager.blockNumber(this, input)
+                if (added) {
+                    Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
+                    dialogBinding.etBlockedNumberInput.text?.clear()
+                    refreshList()
+                } else {
+                    Toast.makeText(this, "เบอร์นี้อยู่ในรายการบล็อกแล้ว", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "กรุณากรอกเบอร์โทรศัพท์", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        dialogBinding.btnCloseBlockedDialog.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun exitApp() {
@@ -786,6 +852,37 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.btnActionChangePhoto.setOnClickListener {
             dialog.dismiss()
             showEditPhotoDialog(contact)
+        }
+
+        // Block / Unblock Contact button
+        val isBlocked = BlockedNumberManager.isBlocked(this, contact.phoneNumber)
+        if (isBlocked) {
+            dialogBinding.btnActionToggleBlock.text = "ปลดบล็อกเบอร์นี้"
+            dialogBinding.btnActionToggleBlock.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            dialogBinding.btnActionToggleBlock.iconTint = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary))
+        } else {
+            dialogBinding.btnActionToggleBlock.text = getString(R.string.btn_block_number)
+            dialogBinding.btnActionToggleBlock.setTextColor(Color.parseColor("#E53935"))
+            dialogBinding.btnActionToggleBlock.iconTint = ColorStateList.valueOf(Color.parseColor("#E53935"))
+        }
+
+        dialogBinding.btnActionToggleBlock.setOnClickListener {
+            vibrate()
+            dialog.dismiss()
+            if (isBlocked) {
+                BlockedNumberManager.unblockNumber(this, contact.phoneNumber)
+                Toast.makeText(this, getString(R.string.unblock_success), Toast.LENGTH_SHORT).show()
+            } else {
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.block_confirm_title)
+                    .setMessage(getString(R.string.block_confirm_msg, "${contact.name} (${contact.phoneNumber})"))
+                    .setPositiveButton(R.string.btn_confirm_block) { _, _ ->
+                        BlockedNumberManager.blockNumber(this, contact.phoneNumber, contact.name)
+                        Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton(R.string.btn_cancel, null)
+                    .show()
+            }
         }
 
         // Cancel button

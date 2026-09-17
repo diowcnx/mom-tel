@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="10dp"
+    android:paddingHorizontal="4dp">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_block"
+        app:tint="#E53935"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/tvBlockedNumber"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:fontFamily="@font/prompt_regular"
+        android:textColor="@color/text_primary"
+        android:textSize="17sp"
+        tools:text="081-234-5678" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUnblock"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:paddingHorizontal="10dp"
+        android:text="ปลดบล็อก"
+        android:textColor="#E53935"
+        android:textSize="13sp"
+        android:fontFamily="@font/prompt_regular"
+        app:strokeColor="#E53935"
+        app:strokeWidth="1dp"
+        app:cornerRadius="8dp" />
+
+</LinearLayout>

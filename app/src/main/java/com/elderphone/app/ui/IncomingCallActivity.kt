@@ -10,10 +10,13 @@ import android.os.Vibrator
 import android.telecom.Call
 import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.elderphone.app.R
+import com.elderphone.app.data.BlockedNumberManager
 import com.elderphone.app.data.ContactRepository
 import com.elderphone.app.databinding.ActivityIncomingCallBinding
 import com.elderphone.app.service.CallManager
@@ -115,6 +118,28 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
             vibrate()
             CallManager.hangup()
             finish()
+        }
+
+        // Block Caller Button
+        binding.btnBlockCaller.setOnClickListener {
+            vibrate()
+            val number = intent.getStringExtra("phone_number") ?: CallManager.getCallerNumber()
+            if (number.isNotBlank()) {
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.block_confirm_title)
+                    .setMessage(getString(R.string.block_confirm_msg, number))
+                    .setPositiveButton(R.string.btn_confirm_block) { _, _ ->
+                        BlockedNumberManager.blockNumber(this, number)
+                        Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
+                        CallManager.hangup()
+                        finish()
+                    }
+                    .setNegativeButton(R.string.btn_cancel, null)
+                    .show()
+            } else {
+                CallManager.hangup()
+                finish()
+            }
         }
     }
 

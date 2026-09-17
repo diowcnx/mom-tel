@@ -36,4 +36,9 @@
     <style name="ShapeAppearance.ElderPhone.CircleImage" parent="">
         <item name="cornerSize">50%</item>
     </style>
+
+    <!-- Shape Appearance for Rounded Rectangle Image (Large for elderly visibility) -->
+    <style name="ShapeAppearance.ElderPhone.RoundedImage" parent="">
+        <item name="cornerSize">18dp</item>
+    </style>
 </resources>

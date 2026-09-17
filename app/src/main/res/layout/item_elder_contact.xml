@@ -42,6 +42,8 @@
                 android:id="@+id/viewAvatarBg"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
                 android:background="@drawable/bg_contact_rounded_rect" />
 
             <!-- Initial Letter when no photo (Prompt Medium) -->
@@ -49,6 +51,9 @@
                 android:id="@+id/tvAvatarInitial"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:fontFamily="@font/prompt_medium"
                 android:gravity="center"
                 android:textColor="@color/text_white"
@@ -60,6 +65,9 @@
                 android:id="@+id/imgAvatar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.RoundedImage" />
         </FrameLayout>

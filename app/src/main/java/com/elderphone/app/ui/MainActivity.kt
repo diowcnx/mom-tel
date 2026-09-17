@@ -600,9 +600,17 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupSearch() {
-        searchAdapter = SearchContactAdapter(this, emptyList()) { contact ->
-            showContactActionDialog(contact)
-        }
+        searchAdapter = SearchContactAdapter(
+            this,
+            emptyList(),
+            onPhotoClicked = { contact ->
+                vibrate()
+                callContact(contact)
+            },
+            onContactClicked = { contact ->
+                showContactActionDialog(contact)
+            }
+        )
         binding.rvSearchResults.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = searchAdapter
@@ -807,16 +815,25 @@ class MainActivity : AppCompatActivity() {
                 itemBinding.viewAvatarBg.background.setTint(ContextCompat.getColor(this, colorRes))
             }
 
-            // Tap photo -> Call immediately
-            itemBinding.layoutContactPhoto.setOnClickListener {
+            // Tap photo -> Call immediately (attach to all avatar child views for 100% responsiveness)
+            val onPhotoClick = View.OnClickListener {
                 vibrate()
                 callContact(contact)
             }
-            itemBinding.layoutContactPhoto.setOnLongClickListener {
+            val onPhotoLongClick = View.OnLongClickListener {
                 vibrate()
                 showContactActionDialog(contact)
                 true
             }
+
+            itemBinding.layoutContactPhoto.setOnClickListener(onPhotoClick)
+            itemBinding.layoutContactPhoto.setOnLongClickListener(onPhotoLongClick)
+            itemBinding.imgAvatar.setOnClickListener(onPhotoClick)
+            itemBinding.imgAvatar.setOnLongClickListener(onPhotoLongClick)
+            itemBinding.tvAvatarInitial.setOnClickListener(onPhotoClick)
+            itemBinding.tvAvatarInitial.setOnLongClickListener(onPhotoLongClick)
+            itemBinding.viewAvatarBg.setOnClickListener(onPhotoClick)
+            itemBinding.viewAvatarBg.setOnLongClickListener(onPhotoLongClick)
 
             // Tap name -> Show action dialog (Edit name, change photo, block, etc.)
             itemBinding.layoutContactName.setOnClickListener {
@@ -873,6 +890,17 @@ class MainActivity : AppCompatActivity() {
             val colorRes = ContactRepository.getAvatarColorForName(contact.name)
             dialogBinding.actionAvatarBg.background.setTint(ContextCompat.getColor(this, colorRes))
         }
+
+        // Tap avatar/photo in dialog -> Call immediately
+        val onCallFromAvatar = View.OnClickListener {
+            vibrate()
+            dialog.dismiss()
+            callContact(contact)
+        }
+        dialogBinding.layoutActionAvatar.setOnClickListener(onCallFromAvatar)
+        dialogBinding.actionAvatarImg.setOnClickListener(onCallFromAvatar)
+        dialogBinding.actionAvatarBg.setOnClickListener(onCallFromAvatar)
+        dialogBinding.actionAvatarInitial.setOnClickListener(onCallFromAvatar)
 
         // Call button
         dialogBinding.btnActionCall.setOnClickListener {
@@ -1202,6 +1230,7 @@ class MainActivity : AppCompatActivity() {
         try {
             val intent = Intent(Intent.ACTION_CALL).apply {
                 data = Uri.parse("tel:${Uri.encode(number)}")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             startActivity(intent)
         } catch (e: SecurityException) {

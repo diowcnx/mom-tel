@@ -18,22 +18,31 @@
         android:paddingTop="28dp"
         android:paddingBottom="20dp">
 
-        <!-- Contact Avatar Container (Rounded Rectangle) -->
+        <!-- Contact Avatar Container (Rounded Rectangle) - Tap to Call -->
         <FrameLayout
+            android:id="@+id/layoutActionAvatar"
             android:layout_width="110dp"
             android:layout_height="110dp"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
 
             <View
                 android:id="@+id/actionAvatarBg"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
                 android:background="@drawable/bg_contact_rounded_rect" />
 
             <TextView
                 android:id="@+id/actionAvatarInitial"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:fontFamily="@font/prompt_medium"
                 android:gravity="center"
                 android:textColor="@color/text_white"
@@ -44,6 +53,9 @@
                 android:id="@+id/actionAvatarImg"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.ElderPhone.RoundedImage" />
         </FrameLayout>

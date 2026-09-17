@@ -15,6 +15,7 @@ import com.elderphone.app.model.ElderContact
 class SearchContactAdapter(
     private val context: Context,
     private var contactList: List<ElderContact>,
+    private val onPhotoClicked: (ElderContact) -> Unit = {},
     private val onContactClicked: (ElderContact) -> Unit
 ) : RecyclerView.Adapter<SearchContactAdapter.ViewHolder>() {
 
@@ -52,6 +53,16 @@ class SearchContactAdapter(
             b.viewSearchAvatarBg.background.setTint(ContextCompat.getColor(context, colorRes))
         }
 
+        // Tap photo in search result -> Call immediately
+        val onAvatarClick = View.OnClickListener {
+            onPhotoClicked(contact)
+        }
+        b.layoutSearchAvatar.setOnClickListener(onAvatarClick)
+        b.imgSearchAvatar.setOnClickListener(onAvatarClick)
+        b.viewSearchAvatarBg.setOnClickListener(onAvatarClick)
+        b.tvSearchAvatarInitial.setOnClickListener(onAvatarClick)
+
+        // Tap card body -> Show action dialog
         b.root.setOnClickListener {
             onContactClicked(contact)
         }

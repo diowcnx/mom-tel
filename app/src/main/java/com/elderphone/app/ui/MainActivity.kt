@@ -348,6 +348,7 @@ class MainActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.setOnDismissListener {
             isNavigatingInternally = false
+            loadContacts()
         }
 
         fun refreshList() {
@@ -363,6 +364,7 @@ class MainActivity : AppCompatActivity() {
                     BlockedNumberManager.unblockNumber(this, item.number)
                     Toast.makeText(this, getString(R.string.unblock_success), Toast.LENGTH_SHORT).show()
                     refreshList()
+                    loadContacts()
                 }
                 dialogBinding.rvBlockedNumbers.layoutManager = LinearLayoutManager(this)
                 dialogBinding.rvBlockedNumbers.adapter = adapter
@@ -380,6 +382,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
                     dialogBinding.etBlockedNumberInput.text?.clear()
                     refreshList()
+                    loadContacts()
                 } else {
                     Toast.makeText(this, "เบอร์นี้อยู่ในรายการบล็อกแล้ว", Toast.LENGTH_SHORT).show()
                 }
@@ -724,10 +727,15 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 contacts.clear()
                 contacts.addAll(loaded)
-                if (currentPage >= getTotalPages()) {
-                    currentPage = max(0, getTotalPages() - 1)
+                val currentSearch = binding.etSearchContact.text?.toString().orEmpty()
+                if (currentSearch.isNotBlank()) {
+                    filterContacts(currentSearch)
+                } else {
+                    if (currentPage >= getTotalPages()) {
+                        currentPage = max(0, getTotalPages() - 1)
+                    }
+                    displayPage(currentPage)
                 }
-                displayPage(currentPage)
             }
         }.start()
     }
@@ -903,6 +911,7 @@ class MainActivity : AppCompatActivity() {
             if (isBlocked) {
                 BlockedNumberManager.unblockNumber(this, contact.phoneNumber)
                 Toast.makeText(this, getString(R.string.unblock_success), Toast.LENGTH_SHORT).show()
+                loadContacts()
             } else {
                 AlertDialog.Builder(this)
                     .setTitle(R.string.block_confirm_title)
@@ -910,6 +919,7 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.btn_confirm_block) { _, _ ->
                         BlockedNumberManager.blockNumber(this, contact.phoneNumber, contact.name)
                         Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
+                        loadContacts()
                     }
                     .setNegativeButton(R.string.btn_cancel, null)
                     .show()

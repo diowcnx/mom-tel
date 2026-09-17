@@ -82,6 +82,7 @@ object ContactRepository {
         val seenNumbers = mutableSetOf<String>()
 
         val (callCounts, lastCallDates) = getCallLogStats(context)
+        val blockedList = BlockedNumberManager.getBlockedNumbers(context)
 
         val projection = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
@@ -114,11 +115,12 @@ object ContactRepository {
                     val photoUri = if (photoIndex != -1) it.getString(photoIndex) else null
                     val isStarred = if (starredIndex != -1) it.getInt(starredIndex) == 1 else false
 
-                    // Ignore USSD codes like *121#, *137#, etc.
+                    // Ignore USSD codes like *121#, *137#, etc. and ignore blocked numbers
                     val isUssd = rawNumber.startsWith("*") || rawNumber.endsWith("#")
+                    val isBlocked = BlockedNumberManager.isBlocked(rawNumber, blockedList)
                     val normalizedNumber = normalizePhoneNumber(rawNumber)
 
-                    if (!isUssd && normalizedNumber.isNotBlank() && !seenNumbers.contains(normalizedNumber)) {
+                    if (!isUssd && !isBlocked && normalizedNumber.isNotBlank() && !seenNumbers.contains(normalizedNumber)) {
                         seenNumbers.add(normalizedNumber)
 
                         // Suffix/prefix match in call log

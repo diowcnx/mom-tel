@@ -46,10 +46,19 @@ object BlockedNumberManager {
 
     fun isBlocked(context: Context, rawNumber: String): Boolean {
         if (rawNumber.isBlank()) return false
+        val blockedList = getBlockedNumbers(context)
+        return isBlocked(rawNumber, blockedList)
+    }
+
+    fun isBlocked(rawNumber: String, blockedList: List<BlockedNumber>): Boolean {
+        if (rawNumber.isBlank()) return false
         val normalized = normalizeNumber(rawNumber)
         if (normalized.isBlank()) return false
-        val blockedList = getBlockedNumbers(context)
-        return blockedList.any { it.normalizedNumber == normalized || (it.normalizedNumber.endsWith(normalized) && normalized.length >= 8) || (normalized.endsWith(it.normalizedNumber) && it.normalizedNumber.length >= 8) }
+        return blockedList.any {
+            it.normalizedNumber == normalized ||
+            (it.normalizedNumber.endsWith(normalized) && normalized.length >= 8) ||
+            (normalized.endsWith(it.normalizedNumber) && it.normalizedNumber.length >= 8)
+        }
     }
 
     fun blockNumber(context: Context, rawNumber: String, label: String = ""): Boolean {

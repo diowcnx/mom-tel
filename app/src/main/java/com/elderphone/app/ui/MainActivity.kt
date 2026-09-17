@@ -2,6 +2,9 @@ package com.elderphone.app.ui
 
 import android.Manifest
 import android.app.ActivityManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.role.RoleManager
 import android.content.ContentUris
 import android.content.Context
@@ -9,12 +12,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.ContactsContract
+import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,6 +27,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.GridLayout
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -55,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
         private const val PREFS_NAME = "elder_phone_prefs"
         private const val KEY_FOREGROUND_LOCKED = "is_foreground_locked"
+        private const val CHANNEL_LOCK_GUARD = "elder_lock_guard_channel"
     }
 
     private var isForegroundLocked = false
@@ -109,6 +116,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        createLockGuardNotificationChannel()
+        window.statusBarColor = ContextCompat.getColor(this, R.color.primary)
+
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         isForegroundLocked = prefs.getBoolean(KEY_FOREGROUND_LOCKED, false)
         updateLockUi()
@@ -153,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         super.onUserLeaveHint()
         if (isForegroundLocked && !isNavigatingInternally) {
             vibrate()
-            bringAppToFront()
+            triggerFullScreenRelock()
         }
     }
 
@@ -163,9 +173,9 @@ class MainActivity : AppCompatActivity() {
             if (!hasFocus && !isNavigatingInternally) {
                 window.decorView.postDelayed({
                     if (isForegroundLocked && !isNavigatingInternally) {
-                        bringAppToFront()
+                        triggerFullScreenRelock()
                     }
-                }, 100)
+                }, 50)
             } else if (hasFocus) {
                 applyImmersiveMode(true)
             }
@@ -175,7 +185,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (isForegroundLocked && !isNavigatingInternally) {
-            bringAppToFront()
+            triggerFullScreenRelock()
         }
     }
 
@@ -288,18 +298,116 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Failed to startLockTask: ${e.message}")
             }
             Toast.makeText(this, getString(R.string.msg_lock_enabled), Toast.LENGTH_SHORT).show()
+            if (!isDefaultHomeApp()) {
+                promptSetDefaultHomeApp()
+            }
         } else {
             try {
                 stopLockTask()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to stopLockTask: ${e.message}")
             }
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.cancel(9999)
             Toast.makeText(this, getString(R.string.msg_lock_disabled), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun isDefaultHomeApp(): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_HOME) }
+        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return resolveInfo?.activityInfo?.packageName == packageName
+    }
+
+    private fun promptSetDefaultHomeApp() {
+        AlertDialog.Builder(this)
+            .setTitle("ป้องกันการปัดออกจากแอป 100%")
+            .setMessage("บนมือถือระบบสัมผัสท่าทาง เพื่อป้องกันไม่ให้ผู้สูงอายุปัดขอบล่างของหน้าจอเพื่อออกจากแอปได้เลย แนะนำให้ตั้ง 'โทรศัพท์' เป็นแอปหน้าแรกเริ่มต้น (Default Home App)")
+            .setPositiveButton("ตั้งเป็นแอปหน้าแรก") { _, _ ->
+                isNavigatingInternally = true
+                try {
+                    startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                } catch (e: Exception) {
+                    try {
+                        startActivity(Intent(Settings.ACTION_SETTINGS))
+                    } catch (e2: Exception) {
+                        Log.e(TAG, "Error opening settings", e2)
+                    }
+                }
+            }
+            .setNegativeButton("ล็อกแบบทั่วไป", null)
+            .show()
+    }
+
+    private fun createLockGuardNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_LOCK_GUARD,
+                "Elder Lock Guard",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Keeps app locked in foreground"
+                setSound(null, null)
+                enableVibration(false)
+            }
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.createNotificationChannel(channel)
+        }
+    }
+
+    private fun triggerFullScreenRelock() {
+        if (!isForegroundLocked || isNavigatingInternally) return
+        try {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                1001,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val notification = NotificationCompat.Builder(this, CHANNEL_LOCK_GUARD)
+                .setSmallIcon(R.drawable.ic_lock)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(getString(R.string.msg_app_is_locked))
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setFullScreenIntent(pendingIntent, true)
+                .setAutoCancel(true)
+                .build()
+
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.notify(9999, notification)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed fullScreenIntent: ${e.message}")
+        }
+        bringAppToFront()
+    }
+
+    private fun updateGestureExclusion() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            binding.root.post {
+                if (isForegroundLocked) {
+                    val h = binding.root.height
+                    val w = binding.root.width
+                    if (h > 0 && w > 0) {
+                        binding.root.systemGestureExclusionRects = listOf(
+                            Rect(0, h - 250, w, h)
+                        )
+                    }
+                } else {
+                    binding.root.systemGestureExclusionRects = emptyList()
+                }
+            }
         }
     }
 
     private fun applyImmersiveMode(locked: Boolean) {
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.primary)
         if (locked) {
             windowInsetsController.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -309,17 +417,18 @@ class MainActivity : AppCompatActivity() {
             window.decorView.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             )
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             windowInsetsController.show(WindowInsetsCompat.Type.navigationBars())
+            windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
 
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+        updateGestureExclusion()
     }
 
     private fun bringAppToFront() {

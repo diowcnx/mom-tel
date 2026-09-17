@@ -37,6 +37,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
+import android.graphics.drawable.ColorDrawable
+import android.view.ViewGroup
+import android.widget.PopupWindow
 import com.elderphone.app.R
 import com.elderphone.app.data.ContactRepository
 import com.elderphone.app.databinding.ActivityMainBinding
@@ -44,6 +47,7 @@ import com.elderphone.app.databinding.DialogContactActionBinding
 import com.elderphone.app.databinding.DialogEditNameBinding
 import com.elderphone.app.databinding.DialogEditPhotoBinding
 import com.elderphone.app.databinding.ItemElderContactBinding
+import com.elderphone.app.databinding.PopoverLockMenuBinding
 import androidx.activity.OnBackPressedCallback
 import android.text.Editable
 import android.text.TextWatcher
@@ -242,7 +246,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupButtons() {
         binding.btnToggleLock.setOnClickListener {
             vibrate()
-            toggleForegroundLock()
+            showLockMenuPopover(it)
         }
 
         binding.tvAppTitle.setOnClickListener {
@@ -277,6 +281,91 @@ class MainActivity : AppCompatActivity() {
                 currentPage++
                 displayPage(currentPage)
             }
+        }
+    }
+
+    private fun showLockMenuPopover(anchorView: View) {
+        val popoverBinding = PopoverLockMenuBinding.inflate(layoutInflater)
+        val popupWindow = PopupWindow(
+            popoverBinding.root,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        ).apply {
+            elevation = 16f
+            isOutsideTouchable = true
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
+
+        if (isForegroundLocked) {
+            popoverBinding.ivLockIcon.setImageResource(R.drawable.ic_lock_open)
+            popoverBinding.tvLockTitle.text = getString(R.string.menu_unlock_app)
+        } else {
+            popoverBinding.ivLockIcon.setImageResource(R.drawable.ic_lock)
+            popoverBinding.tvLockTitle.text = getString(R.string.menu_lock_app)
+        }
+
+        popoverBinding.itemLock.setOnClickListener {
+            vibrate()
+            popupWindow.dismiss()
+            toggleForegroundLock()
+        }
+
+        popoverBinding.itemExit.setOnClickListener {
+            vibrate()
+            popupWindow.dismiss()
+            exitApp()
+        }
+
+        popupWindow.showAsDropDown(anchorView, 0, 10)
+    }
+
+    private fun exitApp() {
+        if (isDefaultHomeApp()) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.confirm_exit_default_home_title)
+                .setMessage(R.string.confirm_exit_default_home_msg)
+                .setPositiveButton(R.string.btn_change_home_app) { _, _ ->
+                    isNavigatingInternally = true
+                    unlockAppBeforeExit()
+                    try {
+                        startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                    } catch (e: Exception) {
+                        try {
+                            startActivity(Intent(Settings.ACTION_SETTINGS))
+                        } catch (e2: Exception) {
+                            finishAffinity()
+                        }
+                    }
+                }
+                .setNegativeButton(R.string.btn_force_exit) { _, _ ->
+                    unlockAppBeforeExit()
+                    finishAffinity()
+                }
+                .setNeutralButton(R.string.btn_cancel, null)
+                .show()
+        } else {
+            unlockAppBeforeExit()
+            finishAffinity()
+        }
+    }
+
+    private fun unlockAppBeforeExit() {
+        if (isForegroundLocked) {
+            isForegroundLocked = false
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_FOREGROUND_LOCKED, false)
+                .apply()
+            updateLockUi()
+            applyImmersiveMode(false)
+            try {
+                stopLockTask()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to stopLockTask on exit: ${e.message}")
+            }
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.cancel(9999)
         }
     }
 

@@ -48,10 +48,17 @@
     <string name="photo_updated_success">เปลี่ยนรูปผู้ติดต่อเรียบร้อยแล้ว</string>
     <string name="photo_removed_success">ลบรูปผู้ติดต่อเรียบร้อยแล้ว</string>
 
-    <!-- Foreground Lock -->
+    <!-- Foreground Lock & Menu -->
     <string name="cd_toggle_lock">ล็อกหรือปลดล็อกหน้าจอแอป</string>
     <string name="msg_lock_enabled">เปิดโหมดล็อกหน้าจอแล้ว (ป้องกันการเผลอกดออกจากแอป)</string>
     <string name="msg_lock_disabled">ปลดล็อกหน้าจอแอปเรียบร้อยแล้ว</string>
     <string name="msg_app_is_locked">ล็อกหน้าจอแอปอยู่ แตะไอคอนแม่กุญแจด้านบนเพื่อปลดล็อก</string>
+    <string name="menu_lock_app">ล็อกหน้าจอแอป</string>
+    <string name="menu_unlock_app">ปลดล็อกหน้าจอแอป</string>
+    <string name="menu_exit_app">ออกจากแอป</string>
+    <string name="confirm_exit_default_home_title">ออกจากแอป</string>
+    <string name="confirm_exit_default_home_msg">แอปนี้ถูกตั้งเป็นหน้าแรกเริ่มต้น (Home App) ของเครื่องอยู่ หากต้องการกลับสู่หน้าจอปกติ กรุณาเลือกเปลี่ยนแอปหน้าแรก หรือกดปิดแอป</string>
+    <string name="btn_change_home_app">เปลี่ยนแอปหน้าแรก</string>
+    <string name="btn_force_exit">ปิดแอป</string>
 </resources>
 

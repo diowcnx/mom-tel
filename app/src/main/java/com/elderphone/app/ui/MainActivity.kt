@@ -19,8 +19,12 @@ import android.telecom.TelecomManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowManager
 import android.widget.GridLayout
 import android.widget.Toast
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -54,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var isForegroundLocked = false
+    private var isNavigatingInternally = false
 
     private lateinit var binding: ActivityMainBinding
     private val contacts = mutableListOf<ElderContact>()
@@ -107,6 +112,18 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         isForegroundLocked = prefs.getBoolean(KEY_FOREGROUND_LOCKED, false)
         updateLockUi()
+        applyImmersiveMode(isForegroundLocked)
+
+        @Suppress("DEPRECATION")
+        window.decorView.setOnSystemUiVisibilityChangeListener { visibility ->
+            if (isForegroundLocked && (visibility and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION == 0)) {
+                window.decorView.postDelayed({
+                    if (isForegroundLocked) {
+                        applyImmersiveMode(true)
+                    }
+                }, 1000)
+            }
+        }
 
         setupButtons()
         setupSearch()
@@ -117,16 +134,48 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        isNavigatingInternally = false
         checkDefaultDialer()
         if (hasPermissions()) {
             loadContacts()
         }
+        applyImmersiveMode(isForegroundLocked)
         if (isForegroundLocked && !isInLockTaskMode()) {
             try {
                 startLockTask()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to resume lock task: ${e.message}")
             }
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (isForegroundLocked && !isNavigatingInternally) {
+            vibrate()
+            bringAppToFront()
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (isForegroundLocked) {
+            if (!hasFocus && !isNavigatingInternally) {
+                window.decorView.postDelayed({
+                    if (isForegroundLocked && !isNavigatingInternally) {
+                        bringAppToFront()
+                    }
+                }, 100)
+            } else if (hasFocus) {
+                applyImmersiveMode(true)
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isForegroundLocked && !isNavigatingInternally) {
+            bringAppToFront()
         }
     }
 
@@ -192,12 +241,14 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnDialpad.setOnClickListener {
             vibrate()
+            isNavigatingInternally = true
             val intent = Intent(this, DialpadActivity::class.java)
             startActivity(intent)
         }
 
         binding.btnSetDefaultDialer.setOnClickListener {
             vibrate()
+            isNavigatingInternally = true
             requestDefaultDialerRole()
         }
 
@@ -228,6 +279,7 @@ class MainActivity : AppCompatActivity() {
             .apply()
 
         updateLockUi()
+        applyImmersiveMode(newState)
 
         if (newState) {
             try {
@@ -243,6 +295,50 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Failed to stopLockTask: ${e.message}")
             }
             Toast.makeText(this, getString(R.string.msg_lock_disabled), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun applyImmersiveMode(locked: Boolean) {
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        if (locked) {
+            windowInsetsController.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            )
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            windowInsetsController.show(WindowInsetsCompat.Type.navigationBars())
+
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    private fun bringAppToFront() {
+        if (!isForegroundLocked || isNavigatingInternally) return
+        try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+            am?.moveTaskToFront(taskId, ActivityManager.MOVE_TASK_NO_USER_ACTION)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed moveTaskToFront: ${e.message}")
+        }
+        try {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed startActivity reorder: ${e.message}")
         }
     }
 
@@ -673,6 +769,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchCamera(contact: ElderContact) {
         currentEditingContact = contact
+        isNavigatingInternally = true
         try {
             val cacheFile = File(cacheDir, "camera_temp.jpg")
             tempCameraUri = FileProvider.getUriForFile(
@@ -682,6 +779,7 @@ class MainActivity : AppCompatActivity() {
             )
             takePhotoLauncher.launch(tempCameraUri)
         } catch (e: Exception) {
+            isNavigatingInternally = false
             Log.e("MainActivity", "Error launching camera", e)
             Toast.makeText(this, "ไม่สามารถเปิดกล้องได้: ${e.message}", Toast.LENGTH_SHORT).show()
         }
@@ -689,15 +787,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchGallery(contact: ElderContact) {
         currentEditingContact = contact
+        isNavigatingInternally = true
         try {
             pickImageLauncher.launch("image/*")
         } catch (e: Exception) {
+            isNavigatingInternally = false
             Log.e("MainActivity", "Error launching gallery picker", e)
             Toast.makeText(this, "ไม่สามารถเปิดคลังภาพได้", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun launchSystemContactEdit(contact: ElderContact) {
+        isNavigatingInternally = true
         try {
             val contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contact.id)
             val intent = Intent(Intent.ACTION_EDIT).apply {
@@ -705,6 +806,7 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } catch (e: Exception) {
+            isNavigatingInternally = false
             Log.e("MainActivity", "Error launching system contact editor", e)
             Toast.makeText(this, "ไม่สามารถเปิดสมุดโทรศัพท์ได้", Toast.LENGTH_SHORT).show()
         }
@@ -752,14 +854,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun callContact(contact: ElderContact) {
         val number = contact.phoneNumber.ifBlank { return }
+        isNavigatingInternally = true
         try {
             val intent = Intent(Intent.ACTION_CALL).apply {
                 data = Uri.parse("tel:${Uri.encode(number)}")
             }
             startActivity(intent)
         } catch (e: SecurityException) {
+            isNavigatingInternally = false
             Toast.makeText(this, "กรุณาอนุญาตสิทธิ์การโทรในระบบ", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
+            isNavigatingInternally = false
             Toast.makeText(this, "ไม่สามารถโทรออกได้: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }

@@ -673,11 +673,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkDefaultDialer() {
-        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-        val isDefault = telecomManager.defaultDialerPackage == packageName
+    private fun isDefaultDialer(): Boolean {
+        val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
+        return telecomManager.defaultDialerPackage == packageName
+    }
 
-        if (isDefault) {
+    private fun checkDefaultDialer() {
+        if (isDefaultDialer()) {
             binding.cardDefaultDialerPrompt.visibility = View.GONE
         } else {
             binding.cardDefaultDialerPrompt.visibility = View.VISIBLE
@@ -815,9 +817,8 @@ class MainActivity : AppCompatActivity() {
                 itemBinding.viewAvatarBg.background.setTint(ContextCompat.getColor(this, colorRes))
             }
 
-            // Tap photo -> Call immediately (attach to all avatar child views for 100% responsiveness)
+            // Tap photo or card -> Call immediately
             val onPhotoClick = View.OnClickListener {
-                vibrate()
                 callContact(contact)
             }
             val onPhotoLongClick = View.OnLongClickListener {
@@ -828,12 +829,8 @@ class MainActivity : AppCompatActivity() {
 
             itemBinding.layoutContactPhoto.setOnClickListener(onPhotoClick)
             itemBinding.layoutContactPhoto.setOnLongClickListener(onPhotoLongClick)
-            itemBinding.imgAvatar.setOnClickListener(onPhotoClick)
-            itemBinding.imgAvatar.setOnLongClickListener(onPhotoLongClick)
-            itemBinding.tvAvatarInitial.setOnClickListener(onPhotoClick)
-            itemBinding.tvAvatarInitial.setOnLongClickListener(onPhotoLongClick)
-            itemBinding.viewAvatarBg.setOnClickListener(onPhotoClick)
-            itemBinding.viewAvatarBg.setOnLongClickListener(onPhotoLongClick)
+            itemBinding.cardContact.setOnClickListener(onPhotoClick)
+            itemBinding.cardContact.setOnLongClickListener(onPhotoLongClick)
 
             // Tap name -> Show action dialog (Edit name, change photo, block, etc.)
             itemBinding.layoutContactName.setOnClickListener {
@@ -841,17 +838,6 @@ class MainActivity : AppCompatActivity() {
                 showContactActionDialog(contact)
             }
             itemBinding.layoutContactName.setOnLongClickListener {
-                vibrate()
-                showContactActionDialog(contact)
-                true
-            }
-
-            // Tap card background fallback -> Call
-            itemBinding.cardContact.setOnClickListener {
-                vibrate()
-                callContact(contact)
-            }
-            itemBinding.cardContact.setOnLongClickListener {
                 vibrate()
                 showContactActionDialog(contact)
                 true
@@ -1229,20 +1215,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun callContact(contact: ElderContact) {
-        val number = contact.phoneNumber.ifBlank { return }
+        val rawNumber = contact.phoneNumber.ifBlank { return }
+        val cleanNumber = ContactRepository.normalizePhoneNumber(rawNumber).ifBlank {
+            rawNumber.replace("[^0-9+]".toRegex(), "")
+        }
+        if (cleanNumber.isBlank()) return
+
+        vibrate()
         isNavigatingInternally = true
+        Log.d(TAG, "callContact: Calling $cleanNumber (display: ${contact.name})")
+
         try {
-            val intent = Intent(Intent.ACTION_CALL).apply {
-                data = Uri.parse("tel:${Uri.encode(number)}")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            val uri = Uri.fromParts("tel", cleanNumber, null)
+            val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? android.telecom.TelecomManager
+            if (telecomManager != null && isDefaultDialer()) {
+                Log.d(TAG, "Placing call via TelecomManager to $cleanNumber")
+                telecomManager.placeCall(uri, Bundle())
+            } else {
+                Log.d(TAG, "Placing call via ACTION_CALL to $cleanNumber")
+                val intent = Intent(Intent.ACTION_CALL, uri).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         } catch (e: SecurityException) {
             isNavigatingInternally = false
             Toast.makeText(this, "กรุณาอนุญาตสิทธิ์การโทรในระบบ", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            isNavigatingInternally = false
-            Toast.makeText(this, "ไม่สามารถโทรออกได้: ${e.message}", Toast.LENGTH_SHORT).show()
+            try {
+                val uri = Uri.fromParts("tel", cleanNumber, null)
+                val intent = Intent(Intent.ACTION_CALL, uri).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+            } catch (e2: Exception) {
+                isNavigatingInternally = false
+                Toast.makeText(this, "ไม่สามารถโทรออกได้: ${e2.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

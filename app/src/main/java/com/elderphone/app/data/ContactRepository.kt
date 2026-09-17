@@ -175,6 +175,50 @@ object ContactRepository {
                 .thenBy { it.name.lowercase() }
         )
 
+        // Put the most recent incoming caller first in the list for quick access/management
+        try {
+            val recentIncoming = RecentIncomingCallManager.getLatestIncomingCall(context)
+            if (recentIncoming != null) {
+                val recentRawNumber = recentIncoming.first
+                val recentCleaned = BlockedNumberManager.normalizeNumber(recentRawNumber)
+
+                if (recentCleaned.isNotBlank() && !BlockedNumberManager.isBlocked(recentRawNumber, blockedList)) {
+                    val matchIndex = contactsList.indexOfFirst { c ->
+                        val cCleaned = BlockedNumberManager.normalizeNumber(c.phoneNumber)
+                        cCleaned == recentCleaned ||
+                                (cCleaned.length >= 8 && recentCleaned.length >= 8 && (cCleaned.endsWith(recentCleaned) || recentCleaned.endsWith(cCleaned)))
+                    }
+
+                    if (matchIndex != -1) {
+                        val contact = contactsList.removeAt(matchIndex)
+                        contactsList.add(0, contact)
+                        Log.d(TAG, "Promoted recent incoming caller to #1: ${contact.name}")
+                    } else {
+                        // Caller is not yet in contacts list: add as first contact item
+                        val customFileByNum = getCustomPhotoFileByNumber(context, recentCleaned)
+                        val resolvedPhotoUri = if (customFileByNum.exists()) Uri.fromFile(customFileByNum).toString() else null
+                        val photoTime = if (customFileByNum.exists()) customFileByNum.lastModified() else 0L
+
+                        val displayName = recentIncoming.second?.ifBlank { null } ?: recentRawNumber
+                        val newContact = ElderContact(
+                            id = -1L,
+                            name = displayName,
+                            phoneNumber = recentRawNumber,
+                            photoUri = resolvedPhotoUri,
+                            isFavorite = false,
+                            callCount = 1,
+                            lastCallDate = recentIncoming.third,
+                            photoLastModified = photoTime
+                        )
+                        contactsList.add(0, newContact)
+                        Log.d(TAG, "Added unsaved recent incoming caller to #1: $displayName ($recentRawNumber)")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error promoting recent incoming caller", e)
+        }
+
         return contactsList
     }
 
@@ -540,6 +584,55 @@ object ContactRepository {
         } catch (e: Exception) {
             Log.e(TAG, "Error updating contact name", e)
             false
+        }
+    }
+
+    fun insertNewContact(context: Context, firstName: String, lastName: String, phoneNumber: String): Long {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            return -1L
+        }
+        return try {
+            val cleanFirst = firstName.trim()
+            val cleanLast = lastName.trim()
+            val fullName = listOf(cleanFirst, cleanLast).filter { it.isNotBlank() }.joinToString(" ")
+
+            val ops = ArrayList<ContentProviderOperation>()
+            val rawContactInsertIndex = ops.size
+
+            ops.add(
+                ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                    .build()
+            )
+
+            ops.add(
+                ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, fullName)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, cleanFirst)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, cleanLast)
+                    .build()
+            )
+
+            ops.add(
+                ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber.trim())
+                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                    .build()
+            )
+
+            val results = context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+            val rawContactUri = results[0]?.uri
+            val rawContactId = rawContactUri?.lastPathSegment?.toLongOrNull() ?: 1L
+            Log.d(TAG, "Successfully inserted new contact: $fullName ($phoneNumber), rawContactId=$rawContactId")
+            rawContactId
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inserting new contact", e)
+            -1L
         }
     }
 }

@@ -1005,10 +1005,14 @@ class MainActivity : AppCompatActivity() {
             dialog.dismiss()
 
             Thread {
-                val success = ContactRepository.updateContactName(this, contact.id, newFirst, newLast)
+                val success = if (contact.id > 0) {
+                    ContactRepository.updateContactName(this, contact.id, newFirst, newLast)
+                } else {
+                    ContactRepository.insertNewContact(this, newFirst, newLast, contact.phoneNumber) > 0
+                }
                 runOnUiThread {
                     if (success) {
-                        Toast.makeText(this, "เปลี่ยนชื่อเป็น \"$fullName\" สำเร็จ", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "บันทึกชื่อเป็น \"$fullName\" สำเร็จ", Toast.LENGTH_SHORT).show()
                         loadContacts()
                     } else {
                         Toast.makeText(this, "ไม่สามารถบันทึกชื่อได้ กรุณาตรวจสอบสิทธิ์", Toast.LENGTH_SHORT).show()

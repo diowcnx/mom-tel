@@ -64,6 +64,10 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
         val number = intent.getStringExtra("phone_number") ?: CallManager.getCallerNumber()
         val displayName = intent.getStringExtra("display_name") ?: CallManager.getCallerDisplayName()
 
+        if (number.isNotBlank()) {
+            com.elderphone.app.data.RecentIncomingCallManager.recordIncomingCall(this, number, displayName)
+        }
+
         // Lookup in contacts database
         Thread {
             val contact = if (number.isNotBlank()) {

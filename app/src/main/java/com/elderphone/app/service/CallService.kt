@@ -41,6 +41,10 @@ class CallService : InCallService() {
 
         when (call.state) {
             Call.STATE_RINGING -> {
+                if (callerNumber.isNotBlank()) {
+                    com.elderphone.app.data.RecentIncomingCallManager.recordIncomingCall(this, callerNumber, call.details.callerDisplayName)
+                }
+
                 // Launch incoming call screen
                 val intent = Intent(this, IncomingCallActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or

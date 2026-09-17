@@ -56,9 +56,5 @@
     <string name="menu_lock_app">ล็อกหน้าจอแอป</string>
     <string name="menu_unlock_app">ปลดล็อกหน้าจอแอป</string>
     <string name="menu_exit_app">ออกจากแอป</string>
-    <string name="confirm_exit_default_home_title">ออกจากแอป</string>
-    <string name="confirm_exit_default_home_msg">แอปนี้ถูกตั้งเป็นหน้าแรกเริ่มต้น (Home App) ของเครื่องอยู่\n\nกด \'ออกจากแอป\' เพื่อสลับไปหน้าจอหลักปกติของโทรศัพท์ หรือเลือก \'เปลี่ยนแอปหน้าแรก\' เพื่อคืนค่าเดิมในการตั้งค่า</string>
-    <string name="btn_exit_to_home">ออกจากแอป</string>
-    <string name="btn_change_home_app">เปลี่ยนแอปหน้าแรก</string>
 </resources>
 

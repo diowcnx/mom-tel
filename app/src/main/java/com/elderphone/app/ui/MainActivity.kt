@@ -174,16 +174,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (isForegroundLocked) {
-            if (!hasFocus && !isNavigatingInternally) {
-                window.decorView.postDelayed({
-                    if (isForegroundLocked && !isNavigatingInternally) {
-                        triggerFullScreenRelock()
-                    }
-                }, 50)
-            } else if (hasFocus) {
+        if (hasFocus) {
+            window.decorView.removeCallbacks(null)
+            if (isForegroundLocked) {
                 applyImmersiveMode(true)
             }
+        } else if (isForegroundLocked && !isNavigatingInternally) {
+            window.decorView.postDelayed({
+                if (isForegroundLocked && !isNavigatingInternally) {
+                    triggerFullScreenRelock()
+                }
+            }, 300)
         }
     }
 
@@ -286,6 +287,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLockMenuPopover(anchorView: View) {
+        isNavigatingInternally = true
         val popoverBinding = PopoverLockMenuBinding.inflate(layoutInflater)
         val popupWindow = PopupWindow(
             popoverBinding.root,
@@ -296,6 +298,9 @@ class MainActivity : AppCompatActivity() {
             elevation = 16f
             isOutsideTouchable = true
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setOnDismissListener {
+                isNavigatingInternally = false
+            }
         }
 
         if (isForegroundLocked) {
@@ -322,31 +327,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exitApp() {
-        if (isDefaultHomeApp()) {
-            AlertDialog.Builder(this)
-                .setTitle(R.string.confirm_exit_default_home_title)
-                .setMessage(R.string.confirm_exit_default_home_msg)
-                .setPositiveButton(R.string.btn_exit_to_home) { _, _ ->
-                    exitToSystemLauncher()
-                }
-                .setNeutralButton(R.string.btn_change_home_app) { _, _ ->
-                    isNavigatingInternally = true
-                    unlockAppBeforeExit()
-                    try {
-                        startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
-                    } catch (e: Exception) {
-                        try {
-                            startActivity(Intent(Settings.ACTION_SETTINGS))
-                        } catch (e2: Exception) {
-                            exitToSystemLauncher()
-                        }
-                    }
-                }
-                .setNegativeButton(R.string.btn_cancel, null)
-                .show()
-        } else {
-            exitToSystemLauncher()
+        isNavigatingInternally = true
+        unlockAppBeforeExit()
+        window.decorView.removeCallbacks(null)
+        try {
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start home intent: ${e.message}")
         }
+        finishAffinity()
     }
 
     private fun unlockAppBeforeExit() {
@@ -366,58 +359,7 @@ class MainActivity : AppCompatActivity() {
         }
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
         nm?.cancel(9999)
-        try {
-            packageManager.clearPackagePreferredActivities(packageName)
-        } catch (e: Exception) {
-            Log.e(TAG, "clearPackagePreferredActivities failed: ${e.message}")
-        }
-    }
-
-    private fun getSystemLauncherIntent(): Intent? {
-        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-        }
-        val resolveInfos = packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_ALL)
-        for (info in resolveInfos) {
-            val pkg = info.activityInfo.packageName
-            if (pkg != packageName && !pkg.contains("com.android.settings")) {
-                return Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_HOME)
-                    component = ComponentName(pkg, info.activityInfo.name)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                }
-            }
-        }
-        return null
-    }
-
-    private fun exitToSystemLauncher() {
-        unlockAppBeforeExit()
-        Toast.makeText(this, getString(R.string.menu_exit_app), Toast.LENGTH_SHORT).show()
-
-        val systemLauncherIntent = getSystemLauncherIntent()
-        if (systemLauncherIntent != null) {
-            try {
-                startActivity(systemLauncherIntent)
-                moveTaskToBack(true)
-                finish()
-                return
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to launch system launcher: ${e.message}")
-            }
-        }
-
-        try {
-            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            startActivity(homeIntent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to start home intent: ${e.message}")
-        }
-        moveTaskToBack(true)
-        finish()
+        window.decorView.removeCallbacks(null)
     }
 
     private fun toggleForegroundLock() {
@@ -438,9 +380,6 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Failed to startLockTask: ${e.message}")
             }
             Toast.makeText(this, getString(R.string.msg_lock_enabled), Toast.LENGTH_SHORT).show()
-            if (!isDefaultHomeApp()) {
-                promptSetDefaultHomeApp()
-            }
         } else {
             try {
                 stopLockTask()
@@ -451,32 +390,6 @@ class MainActivity : AppCompatActivity() {
             nm?.cancel(9999)
             Toast.makeText(this, getString(R.string.msg_lock_disabled), Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun isDefaultHomeApp(): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_HOME) }
-        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        return resolveInfo?.activityInfo?.packageName == packageName
-    }
-
-    private fun promptSetDefaultHomeApp() {
-        AlertDialog.Builder(this)
-            .setTitle("ป้องกันการปัดออกจากแอป 100%")
-            .setMessage("บนมือถือระบบสัมผัสท่าทาง เพื่อป้องกันไม่ให้ผู้สูงอายุปัดขอบล่างของหน้าจอเพื่อออกจากแอปได้เลย แนะนำให้ตั้ง 'โทรศัพท์' เป็นแอปหน้าแรกเริ่มต้น (Default Home App)")
-            .setPositiveButton("ตั้งเป็นแอปหน้าแรก") { _, _ ->
-                isNavigatingInternally = true
-                try {
-                    startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
-                } catch (e: Exception) {
-                    try {
-                        startActivity(Intent(Settings.ACTION_SETTINGS))
-                    } catch (e2: Exception) {
-                        Log.e(TAG, "Error opening settings", e2)
-                    }
-                }
-            }
-            .setNegativeButton("ล็อกแบบทั่วไป", null)
-            .show()
     }
 
     private fun createLockGuardNotificationChannel() {

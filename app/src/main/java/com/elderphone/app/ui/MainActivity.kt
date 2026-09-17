@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.role.RoleManager
+import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
@@ -325,7 +326,10 @@ class MainActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle(R.string.confirm_exit_default_home_title)
                 .setMessage(R.string.confirm_exit_default_home_msg)
-                .setPositiveButton(R.string.btn_change_home_app) { _, _ ->
+                .setPositiveButton(R.string.btn_exit_to_home) { _, _ ->
+                    exitToSystemLauncher()
+                }
+                .setNeutralButton(R.string.btn_change_home_app) { _, _ ->
                     isNavigatingInternally = true
                     unlockAppBeforeExit()
                     try {
@@ -334,39 +338,86 @@ class MainActivity : AppCompatActivity() {
                         try {
                             startActivity(Intent(Settings.ACTION_SETTINGS))
                         } catch (e2: Exception) {
-                            finishAffinity()
+                            exitToSystemLauncher()
                         }
                     }
                 }
-                .setNegativeButton(R.string.btn_force_exit) { _, _ ->
-                    unlockAppBeforeExit()
-                    finishAffinity()
-                }
-                .setNeutralButton(R.string.btn_cancel, null)
+                .setNegativeButton(R.string.btn_cancel, null)
                 .show()
         } else {
-            unlockAppBeforeExit()
-            finishAffinity()
+            exitToSystemLauncher()
         }
     }
 
     private fun unlockAppBeforeExit() {
-        if (isForegroundLocked) {
-            isForegroundLocked = false
-            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(KEY_FOREGROUND_LOCKED, false)
-                .apply()
-            updateLockUi()
-            applyImmersiveMode(false)
-            try {
-                stopLockTask()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to stopLockTask on exit: ${e.message}")
-            }
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-            nm?.cancel(9999)
+        isNavigatingInternally = true
+        isForegroundLocked = false
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_FOREGROUND_LOCKED, false)
+            .apply()
+        updateLockUi()
+        applyImmersiveMode(false)
+        updateGestureExclusion()
+        try {
+            stopLockTask()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stopLockTask on exit: ${e.message}")
         }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        nm?.cancel(9999)
+        try {
+            packageManager.clearPackagePreferredActivities(packageName)
+        } catch (e: Exception) {
+            Log.e(TAG, "clearPackagePreferredActivities failed: ${e.message}")
+        }
+    }
+
+    private fun getSystemLauncherIntent(): Intent? {
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        val resolveInfos = packageManager.queryIntentActivities(homeIntent, PackageManager.MATCH_ALL)
+        for (info in resolveInfos) {
+            val pkg = info.activityInfo.packageName
+            if (pkg != packageName && !pkg.contains("com.android.settings")) {
+                return Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    component = ComponentName(pkg, info.activityInfo.name)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                }
+            }
+        }
+        return null
+    }
+
+    private fun exitToSystemLauncher() {
+        unlockAppBeforeExit()
+        Toast.makeText(this, getString(R.string.menu_exit_app), Toast.LENGTH_SHORT).show()
+
+        val systemLauncherIntent = getSystemLauncherIntent()
+        if (systemLauncherIntent != null) {
+            try {
+                startActivity(systemLauncherIntent)
+                moveTaskToBack(true)
+                finish()
+                return
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to launch system launcher: ${e.message}")
+            }
+        }
+
+        try {
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start home intent: ${e.message}")
+        }
+        moveTaskToBack(true)
+        finish()
     }
 
     private fun toggleForegroundLock() {

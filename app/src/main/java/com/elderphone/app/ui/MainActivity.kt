@@ -70,13 +70,13 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val PREFS_NAME = "elder_phone_prefs"
-        private const val KEY_FOREGROUND_LOCKED = "is_foreground_locked"
+        const val PREFS_NAME = "elder_phone_prefs"
+        const val KEY_FOREGROUND_LOCKED = "is_foreground_locked"
         private const val CHANNEL_LOCK_GUARD = "elder_lock_guard_channel"
+        var isNavigatingInternally = false
     }
 
     private var isForegroundLocked = false
-    private var isNavigatingInternally = false
 
     private lateinit var binding: ActivityMainBinding
     private val contacts = mutableListOf<ElderContact>()
@@ -155,7 +155,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isNavigatingInternally = false
+        if (com.elderphone.app.service.CallManager.currentCall == null) {
+            isNavigatingInternally = false
+        }
         checkDefaultDialer()
         if (hasPermissions()) {
             loadContacts()
@@ -172,7 +174,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (isForegroundLocked && !isNavigatingInternally) {
+        if (isForegroundLocked && !isNavigatingInternally && com.elderphone.app.service.CallManager.currentCall == null) {
             vibrate()
             triggerFullScreenRelock()
         }
@@ -185,9 +187,9 @@ class MainActivity : AppCompatActivity() {
             if (isForegroundLocked) {
                 applyImmersiveMode(true)
             }
-        } else if (isForegroundLocked && !isNavigatingInternally) {
+        } else if (isForegroundLocked && !isNavigatingInternally && com.elderphone.app.service.CallManager.currentCall == null) {
             window.decorView.postDelayed({
-                if (isForegroundLocked && !isNavigatingInternally) {
+                if (isForegroundLocked && !isNavigatingInternally && com.elderphone.app.service.CallManager.currentCall == null) {
                     triggerFullScreenRelock()
                 }
             }, 300)
@@ -196,7 +198,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        if (isForegroundLocked && !isNavigatingInternally) {
+        if (isForegroundLocked && !isNavigatingInternally && com.elderphone.app.service.CallManager.currentCall == null) {
             triggerFullScreenRelock()
         }
     }
@@ -481,7 +483,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun triggerFullScreenRelock() {
-        if (!isForegroundLocked || isNavigatingInternally) return
+        if (!isForegroundLocked || isNavigatingInternally || com.elderphone.app.service.CallManager.currentCall != null) return
         try {
             val intent = Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -557,7 +559,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bringAppToFront() {
-        if (!isForegroundLocked || isNavigatingInternally) return
+        if (!isForegroundLocked || isNavigatingInternally || com.elderphone.app.service.CallManager.currentCall != null) return
         try {
             val am = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
             am?.moveTaskToFront(taskId, ActivityManager.MOVE_TASK_NO_USER_ACTION)

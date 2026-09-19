@@ -74,6 +74,8 @@
         <activity
             android:name=".ui.DialpadActivity"
             android:exported="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:screenOrientation="portrait"
             android:label="@string/dialpad_title" />
 

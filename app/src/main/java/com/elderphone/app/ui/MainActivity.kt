@@ -987,7 +987,8 @@ class MainActivity : AppCompatActivity() {
         currentEditingContact = contact
         isNavigatingInternally = true
         try {
-            val cacheFile = File(cacheDir, "camera_temp.jpg")
+            val cameraDir = File(cacheDir, "camera").apply { mkdirs() }
+            val cacheFile = File(cameraDir, "camera_temp.jpg")
             tempCameraUri = FileProvider.getUriForFile(
                 this,
                 "${packageName}.fileprovider",

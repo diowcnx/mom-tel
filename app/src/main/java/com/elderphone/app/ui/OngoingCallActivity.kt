@@ -42,6 +42,11 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         android.util.Log.d("OngoingCallActivity", "onCreate called")
+        if (CallManager.currentCall == null) {
+            android.util.Log.w("OngoingCallActivity", "No active call found; terminating.")
+            finish()
+            return
+        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         binding = ActivityOngoingCallBinding.inflate(layoutInflater)
@@ -66,8 +71,8 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
     }
 
     private fun displayCallerInfo() {
-        val number = intent.getStringExtra("phone_number")?.ifBlank { null } ?: CallManager.getCallerNumber()
-        val displayName = intent.getStringExtra("display_name")?.ifBlank { null } ?: CallManager.getCallerDisplayName()
+        val number = CallManager.getCallerNumber().ifBlank { intent.getStringExtra("phone_number") ?: "" }
+        val displayName = CallManager.getCallerDisplayName() ?: intent.getStringExtra("display_name")
 
         Thread {
             val contact = if (number.isNotBlank()) {

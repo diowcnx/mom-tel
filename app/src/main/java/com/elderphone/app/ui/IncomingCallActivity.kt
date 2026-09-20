@@ -27,6 +27,11 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (CallManager.currentCall == null) {
+            android.util.Log.w("IncomingCallActivity", "No active call found; terminating.")
+            finish()
+            return
+        }
         wakeAndUnlockScreen()
 
         binding = ActivityIncomingCallBinding.inflate(layoutInflater)
@@ -61,8 +66,8 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
     }
 
     private fun displayCallerInfo() {
-        val number = intent.getStringExtra("phone_number") ?: CallManager.getCallerNumber()
-        val displayName = intent.getStringExtra("display_name") ?: CallManager.getCallerDisplayName()
+        val number = CallManager.getCallerNumber().ifBlank { intent.getStringExtra("phone_number") ?: "" }
+        val displayName = CallManager.getCallerDisplayName() ?: intent.getStringExtra("display_name")
 
         if (number.isNotBlank()) {
             com.elderphone.app.data.RecentIncomingCallManager.recordIncomingCall(this, number, displayName)

@@ -18,7 +18,7 @@
 
     <application
         android:name=".ElderPhoneApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -53,7 +53,7 @@
         <!-- Incoming Call Full-Screen Activity -->
         <activity
             android:name=".ui.IncomingCallActivity"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
@@ -64,7 +64,7 @@
         <!-- Ongoing Call Activity -->
         <activity
             android:name=".ui.OngoingCallActivity"
-            android:exported="true"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
@@ -73,7 +73,7 @@
         <!-- Dialpad Activity (For unlisted / manual numbers) -->
         <activity
             android:name=".ui.DialpadActivity"
-            android:exported="true"
+            android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:screenOrientation="portrait"

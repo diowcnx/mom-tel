@@ -56,9 +56,6 @@ import com.elderphone.app.databinding.DialogManageBlockedNumbersBinding
 import com.elderphone.app.databinding.ItemElderContactBinding
 import com.elderphone.app.databinding.PopoverLockMenuBinding
 import androidx.activity.OnBackPressedCallback
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elderphone.app.model.ElderContact
@@ -83,7 +80,6 @@ class MainActivity : AppCompatActivity() {
     private var currentPage = 0
     private val contactsPerPage = 6
 
-    private lateinit var searchAdapter: SearchContactAdapter
     private var currentEditingContact: ElderContact? = null
     private var tempCameraUri: Uri? = null
 
@@ -147,7 +143,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupButtons()
-        setupSearch()
         setupBackNavigation()
         checkAndRequestPermissions()
         checkDefaultDialer()
@@ -206,11 +201,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val isSearching = binding.rvSearchResults.visibility == View.VISIBLE ||
-                        binding.tvNoSearchResults.visibility == View.VISIBLE ||
-                        !binding.etSearchContact.text.isNullOrEmpty() ||
-                        binding.etSearchContact.hasFocus()
-                if (isSearching || currentPage > 0) {
+                if (currentPage > 0) {
                     returnToFirstPage()
                 } else {
                     if (isForegroundLocked) {
@@ -231,24 +222,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun returnToFirstPage() {
         vibrate()
-        // 1. Clear search query text if any
-        if (!binding.etSearchContact.text.isNullOrEmpty()) {
-            binding.etSearchContact.text?.clear()
-        }
-        // 2. Hide keyboard and clear focus
-        binding.etSearchContact.clearFocus()
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        imm?.hideSoftInputFromWindow(binding.etSearchContact.windowToken, 0)
-
-        // 3. Reset search visibility state
-        binding.btnClearSearch.visibility = View.GONE
-        binding.rvSearchResults.visibility = View.GONE
-        binding.tvNoSearchResults.visibility = View.GONE
-        binding.gridContacts.visibility = View.VISIBLE
-        binding.btnPrevPage.visibility = View.VISIBLE
-        binding.btnNextPage.visibility = View.VISIBLE
-
-        // 4. Navigate to first page
         currentPage = 0
         displayPage(0)
     }
@@ -601,80 +574,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun setupSearch() {
-        searchAdapter = SearchContactAdapter(
-            this,
-            emptyList(),
-            onPhotoClicked = { contact ->
-                vibrate()
-                callContact(contact)
-            },
-            onContactClicked = { contact ->
-                showContactActionDialog(contact)
-            }
-        )
-        binding.rvSearchResults.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = searchAdapter
-        }
-
-        binding.etSearchContact.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterContacts(s?.toString().orEmpty())
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        binding.btnClearSearch.setOnClickListener {
-            returnToFirstPage()
-        }
-
-        binding.etSearchContact.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.hideSoftInputFromWindow(binding.etSearchContact.windowToken, 0)
-                true
-            } else {
-                false
-            }
-        }
-    }
-
-    private fun filterContacts(query: String) {
-        val q = query.trim()
-        if (q.isEmpty()) {
-            binding.btnClearSearch.visibility = View.GONE
-            binding.rvSearchResults.visibility = View.GONE
-            binding.tvNoSearchResults.visibility = View.GONE
-            binding.gridContacts.visibility = View.VISIBLE
-            binding.btnPrevPage.visibility = View.VISIBLE
-            binding.btnNextPage.visibility = View.VISIBLE
-            currentPage = 0
-            displayPage(0)
-        } else {
-            binding.btnClearSearch.visibility = View.VISIBLE
-            binding.gridContacts.visibility = View.GONE
-            binding.btnPrevPage.visibility = View.GONE
-            binding.btnNextPage.visibility = View.GONE
-
-            val cleanQ = q.replace("-", "").replace(" ", "")
-            val filtered = contacts.filter { contact ->
-                contact.name.contains(q, ignoreCase = true) ||
-                contact.phoneNumber.replace("-", "").replace(" ", "").contains(cleanQ, ignoreCase = true)
-            }
-
-            if (filtered.isEmpty()) {
-                binding.rvSearchResults.visibility = View.GONE
-                binding.tvNoSearchResults.visibility = View.VISIBLE
-            } else {
-                binding.tvNoSearchResults.visibility = View.GONE
-                binding.rvSearchResults.visibility = View.VISIBLE
-                searchAdapter.updateData(filtered)
-            }
-        }
-    }
-
     private fun isDefaultDialer(): Boolean {
         val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
         return telecomManager.defaultDialerPackage == packageName
@@ -739,15 +638,10 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 contacts.clear()
                 contacts.addAll(loaded)
-                val currentSearch = binding.etSearchContact.text?.toString().orEmpty()
-                if (currentSearch.isNotBlank()) {
-                    filterContacts(currentSearch)
-                } else {
-                    if (currentPage >= getTotalPages()) {
-                        currentPage = max(0, getTotalPages() - 1)
-                    }
-                    displayPage(currentPage)
+                if (currentPage >= getTotalPages()) {
+                    currentPage = max(0, getTotalPages() - 1)
                 }
+                displayPage(currentPage)
             }
         }.start()
     }

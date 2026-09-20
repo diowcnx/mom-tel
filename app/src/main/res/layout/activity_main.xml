@@ -153,38 +153,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
 
-    <!-- Search Results List (Overlaid on grid area, visible during search) -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSearchResults"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="12dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
-
-    <!-- No Search Results Found Message -->
-    <TextView
-        android:id="@+id/tvNoSearchResults"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/prompt_regular"
-        android:gravity="center"
-        android:padding="24dp"
-        android:text="ไม่พบรายชื่อหรือเบอร์ที่ค้นหา"
-        android:textColor="@color/text_secondary"
-        android:textSize="18sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardDefaultDialerPrompt" />
-
-    <!-- Bottom Navigation Bar (Arrow buttons and center search bar) -->
+    <!-- Bottom Navigation Bar (Large Previous & Next Page Buttons) -->
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
@@ -194,91 +163,58 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="14dp"
-        android:paddingTop="10dp"
+        android:paddingTop="12dp"
         android:paddingBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Previous Page Arrow Button -->
+        <!-- Previous Page Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevPage"
             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-            android:layout_width="56dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
             android:backgroundTint="@color/btn_nav_bg"
-            android:contentDescription="@string/btn_prev_page"
+            android:fontFamily="@font/prompt_medium"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            app:cornerRadius="26dp"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="หน้าก่อน"
+            android:textColor="@color/text_white"
+            android:textSize="20sp"
+            app:cornerRadius="20dp"
             app:icon="@drawable/ic_arrow_back"
             app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="28dp"
+            app:iconPadding="6dp"
+            app:iconSize="24dp"
             app:iconTint="@color/text_white" />
 
-        <!-- Search Bar in Center -->
-        <LinearLayout
-            android:id="@+id/searchContainer"
-            android:layout_width="0dp"
-            android:layout_height="52dp"
-            android:layout_marginHorizontal="8dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_search_input"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:contentDescription="ค้นหา"
-                android:src="@drawable/ic_search"
-                app:tint="@color/text_secondary" />
-
-            <EditText
-                android:id="@+id/etSearchContact"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@null"
-                android:fontFamily="@font/prompt_regular"
-                android:hint="ค้นหาชื่อหรือเบอร์..."
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLines="1"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint"
-                android:textSize="16sp" />
-
-            <ImageView
-                android:id="@+id/btnClearSearch"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="ล้างคำค้นหา"
-                android:padding="6dp"
-                android:src="@drawable/ic_clear"
-                android:visibility="gone"
-                app:tint="@color/text_secondary" />
-        </LinearLayout>
-
-        <!-- Next Page Arrow Button -->
+        <!-- Next Page Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNextPage"
             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-            android:layout_width="56dp"
-            android:layout_height="52dp"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
             android:backgroundTint="@color/btn_nav_bg"
-            android:contentDescription="@string/btn_next_page"
+            android:fontFamily="@font/prompt_medium"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            app:cornerRadius="26dp"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="หน้าถัดไป"
+            android:textColor="@color/text_white"
+            android:textSize="20sp"
+            app:cornerRadius="20dp"
             app:icon="@drawable/ic_arrow_forward"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="28dp"
+            app:iconGravity="textEnd"
+            app:iconPadding="6dp"
+            app:iconSize="24dp"
             app:iconTint="@color/text_white" />
 
     </LinearLayout>

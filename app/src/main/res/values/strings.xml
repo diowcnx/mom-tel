@@ -6,20 +6,21 @@
     <string name="set_default_dialer_banner">กรุณาตั้งเป็นแอปโทรศัพท์หลักของเครื่อง เพื่อให้สามารถรับสายและโทรออกได้อย่างสมบูรณ์</string>
     <string name="btn_set_default_dialer">ตั้งเป็นแอปโทรศัพท์หลัก</string>
     <string name="permission_required_message">แอปจำเป็นต้องขอสิทธิ์การโทรและเข้าถึงรายชื่อเพื่อแสดงรูปและโทรหาคนที่คุณต้องการ</string>
-    <string name="grant_permission">อนุญาตสิทธิ์</string>
+    <string name="notification_channel_calls_name">สายเรียกเข้า</string>
+    <string name="notification_channel_calls_description">การแจ้งเตือนสายโทรเข้าสำหรับผู้สูงอายุ</string>
+    <string name="notification_channel_lock_name">ป้องกันการออกจากแอป</string>
+    <string name="notification_channel_lock_description">ช่วยนำแอปกลับมาด้านหน้าเมื่อเปิดโหมดล็อก</string>
 
     <!-- Navigation -->
-    <string name="btn_prev_page">◀ หน้าก่อน</string>
-    <string name="btn_next_page">หน้าถัดไป ▶</string>
-    <string name="page_indicator">หน้า %1$d จาก %2$d</string>
+    <string name="btn_prev_page">หน้าก่อน</string>
+    <string name="btn_next_page">หน้าถัดไป</string>
     <string name="btn_dialpad">แป้นกดตัวเลข</string>
     <string name="btn_back">ย้อนกลับ</string>
 
     <!-- Calling & Contacts -->
     <string name="empty_contacts">ยังไม่มีรายชื่อผู้ติดต่อ\nกรุณาเพิ่มเบอร์โทรศัพท์ในเครื่อง</string>
-    <string name="calling_contact">กำลังโทรหา: %1$s</string>
-    <string name="unknown_caller">เบอร์โทรเข้า</string>
     <string name="unknown_caller_new">เบอร์ใหม่โทรเข้ามา</string>
+    <string name="unknown_number">ไม่ทราบหมายเลข</string>
     <string name="incoming_call_title">มีสายโทรเข้า</string>
     <string name="ongoing_call_title">กำลังสนทนา</string>
     <string name="call_ended">วางสายแล้ว</string>
@@ -36,17 +37,53 @@
     <!-- Dialpad -->
     <string name="dialpad_title">กดเบอร์โทรศัพท์</string>
     <string name="btn_call">โทรออก</string>
+    <string name="cd_backspace">ลบตัวเลข</string>
+    <string name="cd_star">ดอกจัน</string>
+    <string name="dialpad_0">0</string>
+    <string name="dialpad_1">1</string>
+    <string name="dialpad_2">2</string>
+    <string name="dialpad_3">3</string>
+    <string name="dialpad_4">4</string>
+    <string name="dialpad_5">5</string>
+    <string name="dialpad_6">6</string>
+    <string name="dialpad_7">7</string>
+    <string name="dialpad_8">8</string>
+    <string name="dialpad_9">9</string>
+    <string name="dialpad_hash">#</string>
+    <string name="error_empty_phone_number">กรุณากดเบอร์โทรศัพท์</string>
+    <string name="error_call_permission">กรุณาอนุญาตสิทธิ์การโทรในระบบ</string>
+    <string name="error_call_failed">ไม่สามารถโทรออกได้: %1$s</string>
 
     <!-- Photo Editing -->
-    <string name="btn_edit_photo">แก้ไขรูป</string>
+    <string name="btn_edit_photo">เปลี่ยนรูป</string>
+    <string name="btn_edit_name">เปลี่ยนชื่อ</string>
     <string name="dialog_title_edit_photo">แก้ไขรูปภาพผู้ติดต่อ</string>
     <string name="option_take_photo">ถ่ายรูปใหม่ด้วยกล้อง</string>
     <string name="option_choose_gallery">เลือกรูปจากคลังภาพ</string>
-    <string name="option_edit_system_contact">แก้ไขในสมุดโทรศัพท์เครื่อง</string>
+    <string name="option_edit_system_contact">แก้ไขในสมุดโทรศัพท์</string>
     <string name="option_remove_photo">ลบรูปภาพออก</string>
     <string name="btn_cancel">ยกเลิก</string>
     <string name="photo_updated_success">เปลี่ยนรูปผู้ติดต่อเรียบร้อยแล้ว</string>
     <string name="photo_removed_success">ลบรูปผู้ติดต่อเรียบร้อยแล้ว</string>
+    <string name="photo_save_failed">ไม่สามารถบันทึกรูปภาพได้</string>
+    <string name="photo_process_failed">เกิดข้อผิดพลาดในการประมวลผลรูปภาพ</string>
+    <string name="camera_open_failed">ไม่สามารถเปิดกล้องได้: %1$s</string>
+    <string name="gallery_open_failed">ไม่สามารถเปิดคลังภาพได้</string>
+    <string name="contact_editor_open_failed">ไม่สามารถเปิดสมุดโทรศัพท์ได้</string>
+
+    <!-- Contact Name Editing -->
+    <string name="dialog_title_edit_name">แก้ไขชื่อผู้ติดต่อ</string>
+    <string name="label_first_name">ชื่อ</string>
+    <string name="label_last_name_optional">นามสกุล (ถ้ามี)</string>
+    <string name="hint_first_name">กรอกชื่อ…</string>
+    <string name="hint_last_name">กรอกนามสกุล…</string>
+    <string name="btn_save_name">บันทึกชื่อ</string>
+    <string name="contact_phone_number">เบอร์โทร: %1$s</string>
+    <string name="cd_call_contact">โทรหา %1$s</string>
+    <string name="cd_manage_contact">จัดการผู้ติดต่อ %1$s</string>
+    <string name="error_name_required">กรุณากรอกชื่อหรือนามสกุลอย่างน้อย 1 ช่อง</string>
+    <string name="contact_name_saved">บันทึกชื่อเป็น “%1$s” สำเร็จ</string>
+    <string name="contact_name_save_failed">ไม่สามารถบันทึกชื่อได้ กรุณาตรวจสอบสิทธิ์</string>
 
     <!-- Foreground Lock & Menu -->
     <string name="cd_toggle_lock">ล็อกหรือปลดล็อกหน้าจอแอป</string>
@@ -60,10 +97,16 @@
 
     <!-- Blocked Numbers -->
     <string name="btn_block_number">บล็อกเบอร์นี้</string>
+    <string name="btn_unblock_number">ปลดบล็อกเบอร์นี้</string>
     <string name="dialog_blocked_title">จัดการเบอร์ที่บล็อก</string>
     <string name="empty_blocked_numbers">ยังไม่มีเบอร์ที่ถูกบล็อก</string>
     <string name="btn_add_block">เพิ่มเบอร์บล็อก</string>
-    <string name="hint_block_number">กรอกเบอร์โทรศัพท์ที่ต้องการบล็อก...</string>
+    <string name="hint_block_number">กรอกเบอร์โทรศัพท์ที่ต้องการบล็อก…</string>
+    <string name="blocked_numbers_description">สายเรียกเข้าจากเบอร์ในรายการนี้จะถูกตัดสายทิ้งโดยอัตโนมัติ</string>
+    <string name="btn_close">ปิด</string>
+    <string name="btn_unblock">ปลดบล็อก</string>
+    <string name="number_already_blocked">เบอร์นี้อยู่ในรายการบล็อกแล้ว</string>
+    <string name="error_block_number_required">กรุณากรอกเบอร์โทรศัพท์</string>
     <string name="unblock_success">ปลดบล็อกเบอร์เรียบร้อยแล้ว</string>
     <string name="block_success">บล็อกเบอร์เรียบร้อยแล้ว</string>
     <string name="block_confirm_title">ยืนยันการบล็อกเบอร์</string>

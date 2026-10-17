@@ -7,7 +7,7 @@ import com.elderphone.app.data.BlockedNumber
 import com.elderphone.app.databinding.ItemBlockedNumberBinding
 
 class BlockedNumbersAdapter(
-    private var items: List<BlockedNumber>,
+    private val items: List<BlockedNumber>,
     private val onUnblockClick: (BlockedNumber) -> Unit
 ) : RecyclerView.Adapter<BlockedNumbersAdapter.ViewHolder>() {
 
@@ -31,9 +31,4 @@ class BlockedNumbersAdapter(
     }
 
     override fun getItemCount(): Int = items.size
-
-    fun updateList(newItems: List<BlockedNumber>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
 }

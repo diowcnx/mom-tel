@@ -59,7 +59,7 @@ object ContactRepository {
                 while (it.moveToNext()) {
                     val rawNum = if (numberIndex != -1) it.getString(numberIndex) ?: "" else ""
                     val date = if (dateIndex != -1) it.getLong(dateIndex) else 0L
-                    val norm = normalizePhoneNumber(rawNum)
+                    val norm = PhoneNumberUtils.normalizeForComparison(rawNum)
                     if (norm.isNotBlank()) {
                         counts[norm] = (counts[norm] ?: 0) + 1
                         if (!lastDates.containsKey(norm)) {
@@ -118,24 +118,21 @@ object ContactRepository {
                     // Ignore USSD codes like *121#, *137#, etc. and ignore blocked numbers
                     val isUssd = rawNumber.startsWith("*") || rawNumber.endsWith("#")
                     val isBlocked = BlockedNumberManager.isBlocked(rawNumber, blockedList)
-                    val normalizedNumber = normalizePhoneNumber(rawNumber)
+                    val normalizedNumber = PhoneNumberUtils.normalizeForComparison(rawNumber)
 
                     if (!isUssd && !isBlocked && normalizedNumber.isNotBlank() && !seenNumbers.contains(normalizedNumber)) {
                         seenNumbers.add(normalizedNumber)
 
-                        // Suffix/prefix match in call log
-                        val count = callCounts[normalizedNumber]
-                            ?: callCounts[normalizedNumber.takeLast(9)]
-                            ?: 0
-                        val lastDate = lastCallDates[normalizedNumber]
-                            ?: lastCallDates[normalizedNumber.takeLast(9)]
-                            ?: 0L
+                        val count = callCounts[normalizedNumber] ?: 0
+                        val lastDate = lastCallDates[normalizedNumber] ?: 0L
 
                         val customFile = getCustomPhotoFile(context, id)
                         val customFileByNum = getCustomPhotoFileByNumber(context, normalizedNumber)
+                        val legacyFileByNum = getCustomPhotoFileByNumber(context, normalizePhoneNumber(rawNumber))
                         val (resolvedPhotoUri, photoTime) = when {
                             customFile.exists() -> Pair(Uri.fromFile(customFile).toString(), customFile.lastModified())
                             customFileByNum.exists() -> Pair(Uri.fromFile(customFileByNum).toString(), customFileByNum.lastModified())
+                            legacyFileByNum.exists() -> Pair(Uri.fromFile(legacyFileByNum).toString(), legacyFileByNum.lastModified())
                             !photoUri.isNullOrBlank() -> Pair(photoUri, 0L)
                             else -> Pair(null, 0L)
                         }
@@ -175,31 +172,30 @@ object ContactRepository {
                 .thenBy { it.name.lowercase() }
         )
 
-        // Put the most recent incoming caller first in the list for quick access/management
+        // The latest call always belongs at the first position so it is visible on page one.
         try {
-            val recentIncoming = RecentIncomingCallManager.getLatestIncomingCall(context)
-            if (recentIncoming != null) {
-                val recentRawNumber = recentIncoming.first
+            val recentCall = RecentCallManager.getLatestCall(context)
+            if (recentCall != null) {
+                val recentRawNumber = recentCall.first
                 val recentCleaned = BlockedNumberManager.normalizeNumber(recentRawNumber)
 
                 if (recentCleaned.isNotBlank() && !BlockedNumberManager.isBlocked(recentRawNumber, blockedList)) {
                     val matchIndex = contactsList.indexOfFirst { c ->
                         val cCleaned = BlockedNumberManager.normalizeNumber(c.phoneNumber)
-                        cCleaned == recentCleaned ||
-                                (cCleaned.length >= 8 && recentCleaned.length >= 8 && (cCleaned.endsWith(recentCleaned) || recentCleaned.endsWith(cCleaned)))
+                        PhoneNumberUtils.areEquivalent(cCleaned, recentCleaned)
                     }
 
                     if (matchIndex != -1) {
                         val contact = contactsList.removeAt(matchIndex)
                         contactsList.add(0, contact)
-                        Log.d(TAG, "Promoted recent incoming caller to #1: ${contact.name}")
+                        Log.d(TAG, "Promoted latest call to #1: ${contact.name}")
                     } else {
-                        // Caller is not yet in contacts list: add as first contact item
+                        // The number is not saved yet: still expose it on the first home page.
                         val customFileByNum = getCustomPhotoFileByNumber(context, recentCleaned)
                         val resolvedPhotoUri = if (customFileByNum.exists()) Uri.fromFile(customFileByNum).toString() else null
                         val photoTime = if (customFileByNum.exists()) customFileByNum.lastModified() else 0L
 
-                        val displayName = recentIncoming.second?.ifBlank { null } ?: recentRawNumber
+                        val displayName = recentCall.second?.ifBlank { null } ?: recentRawNumber
                         val newContact = ElderContact(
                             id = -1L,
                             name = displayName,
@@ -207,16 +203,16 @@ object ContactRepository {
                             photoUri = resolvedPhotoUri,
                             isFavorite = false,
                             callCount = 1,
-                            lastCallDate = recentIncoming.third,
+                            lastCallDate = recentCall.third,
                             photoLastModified = photoTime
                         )
                         contactsList.add(0, newContact)
-                        Log.d(TAG, "Added unsaved recent incoming caller to #1: $displayName ($recentRawNumber)")
+                        Log.d(TAG, "Added unsaved latest call to #1: $displayName ($recentRawNumber)")
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error promoting recent incoming caller", e)
+            Log.e(TAG, "Error promoting latest call", e)
         }
 
         return contactsList
@@ -247,12 +243,15 @@ object ContactRepository {
                     val name = if (nameIndex != -1) it.getString(nameIndex) ?: "" else ""
                     val photoUri = if (photoIndex != -1) it.getString(photoIndex) else null
 
-                    val norm = normalizePhoneNumber(number)
+                    val norm = PhoneNumberUtils.normalizeForComparison(number)
+                    val legacyNorm = normalizePhoneNumber(number)
                     val customFile = getCustomPhotoFile(context, id)
                     val customFileByNum = getCustomPhotoFileByNumber(context, norm)
+                    val legacyFileByNum = getCustomPhotoFileByNumber(context, legacyNorm)
                     val (resolvedPhotoUri, photoTime) = when {
                         customFile.exists() -> Pair(Uri.fromFile(customFile).toString(), customFile.lastModified())
                         customFileByNum.exists() -> Pair(Uri.fromFile(customFileByNum).toString(), customFileByNum.lastModified())
+                        legacyFileByNum.exists() -> Pair(Uri.fromFile(legacyFileByNum).toString(), legacyFileByNum.lastModified())
                         !photoUri.isNullOrBlank() -> Pair(photoUri, 0L)
                         else -> Pair(null, 0L)
                     }
@@ -275,11 +274,7 @@ object ContactRepository {
             val norm = normalizePhoneNumber(number)
             if (norm.isNotBlank()) {
                 val all = getAllContacts(context)
-                val found = all.find { c ->
-                    val cNorm = normalizePhoneNumber(c.phoneNumber)
-                    cNorm == norm ||
-                    (cNorm.length >= 8 && norm.length >= 8 && (cNorm.endsWith(norm) || norm.endsWith(cNorm)))
-                }
+                val found = all.find { c -> PhoneNumberUtils.areEquivalent(c.phoneNumber, norm) }
                 if (found != null) {
                     return found
                 }
@@ -316,7 +311,7 @@ object ContactRepository {
             }
             fileById.setLastModified(now)
 
-            val norm = normalizePhoneNumber(contact.phoneNumber)
+            val norm = PhoneNumberUtils.normalizeForComparison(contact.phoneNumber)
             if (norm.isNotBlank()) {
                 val fileByNum = getCustomPhotoFileByNumber(context, norm)
                 FileOutputStream(fileByNum).use { out ->
@@ -341,10 +336,15 @@ object ContactRepository {
         return try {
             val fileById = getCustomPhotoFile(context, contact.id)
             if (fileById.exists()) fileById.delete()
-            val norm = normalizePhoneNumber(contact.phoneNumber)
+            val norm = PhoneNumberUtils.normalizeForComparison(contact.phoneNumber)
             if (norm.isNotBlank()) {
                 val fileByNum = getCustomPhotoFileByNumber(context, norm)
                 if (fileByNum.exists()) fileByNum.delete()
+            }
+            val legacyNorm = normalizePhoneNumber(contact.phoneNumber)
+            if (legacyNorm.isNotBlank() && legacyNorm != norm) {
+                val legacyFileByNum = getCustomPhotoFileByNumber(context, legacyNorm)
+                if (legacyFileByNum.exists()) legacyFileByNum.delete()
             }
             Thread {
                 deleteSystemContactPhoto(context, contact.id)

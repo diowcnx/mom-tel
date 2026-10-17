@@ -5,7 +5,6 @@ import android.content.Intent
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -21,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.elderphone.app.R
 import com.elderphone.app.data.ContactRepository
+import com.elderphone.app.data.RecentCallManager
 import com.elderphone.app.databinding.ActivityDialpadBinding
 
 class DialpadActivity : AppCompatActivity() {
@@ -146,7 +146,7 @@ class DialpadActivity : AppCompatActivity() {
                 vibrate()
                 callNumber(number)
             } else {
-                Toast.makeText(this, "กรุณากดเบอร์โทรศัพท์", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.error_empty_phone_number, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -208,6 +208,7 @@ class DialpadActivity : AppCompatActivity() {
             if (telecomManager != null && isDefaultDialer()) {
                 Log.d(TAG, "Placing call via TelecomManager to $cleanNumber")
                 telecomManager.placeCall(uri, Bundle())
+                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             } else {
                 Log.d(TAG, "Placing call via ACTION_CALL to $cleanNumber")
@@ -215,11 +216,12 @@ class DialpadActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
+                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             }
         } catch (e: SecurityException) {
             MainActivity.isNavigatingInternally = false
-            Toast.makeText(this, "กรุณาอนุญาตสิทธิ์การโทรในระบบ", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_call_permission, Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             try {
                 val uri = if (cleanNumber.contains("#")) {
@@ -231,21 +233,17 @@ class DialpadActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
+                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             } catch (e2: Exception) {
                 MainActivity.isNavigatingInternally = false
-                Toast.makeText(this, "ไม่สามารถโทรออกได้: ${e2.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_call_failed, e2.message.orEmpty()), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun vibrate() {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(35, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(35)
-        }
+        val vibrator = getSystemService(Vibrator::class.java) ?: return
+        vibrator.vibrate(VibrationEffect.createOneShot(35, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 }

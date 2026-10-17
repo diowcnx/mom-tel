@@ -1,10 +1,12 @@
 package com.elderphone.app.service
 
 import android.content.Intent
+import android.os.Build
 import android.telecom.Call
 import android.telecom.InCallService
 import android.util.Log
 import com.elderphone.app.data.BlockedNumberManager
+import com.elderphone.app.data.RecentCallManager
 import com.elderphone.app.ui.IncomingCallActivity
 import com.elderphone.app.ui.OngoingCallActivity
 
@@ -16,11 +18,12 @@ class CallService : InCallService() {
 
     override fun onCallAdded(call: Call) {
         super.onCallAdded(call)
-        Log.d(TAG, "onCallAdded: state = ${call.state}")
+        val initialState = call.compatState()
+        Log.d(TAG, "onCallAdded: state = $initialState")
 
         // Check if incoming call is from a blocked number
         val callerNumber = call.details.handle?.schemeSpecificPart ?: ""
-        if (call.state == Call.STATE_RINGING && callerNumber.isNotBlank()) {
+        if (initialState == Call.STATE_RINGING && callerNumber.isNotBlank()) {
             if (BlockedNumberManager.isBlocked(this, callerNumber)) {
                 Log.i(TAG, "Blocked call from: $callerNumber - Auto-rejecting")
                 try {
@@ -36,13 +39,13 @@ class CallService : InCallService() {
             }
         }
 
-        CallManager.inCallService = this
+        CallManager.attachService(this)
         CallManager.setCall(call)
 
-        when (call.state) {
+        when (initialState) {
             Call.STATE_RINGING -> {
                 if (callerNumber.isNotBlank()) {
-                    com.elderphone.app.data.RecentIncomingCallManager.recordIncomingCall(this, callerNumber, call.details.callerDisplayName)
+                    RecentCallManager.recordCall(this, callerNumber, call.details.callerDisplayName)
                 }
 
                 // Launch incoming call screen
@@ -56,8 +59,11 @@ class CallService : InCallService() {
                 startActivity(intent)
             }
             Call.STATE_DIALING, Call.STATE_CONNECTING, Call.STATE_ACTIVE -> {
+                if (callerNumber.isNotBlank()) {
+                    RecentCallManager.recordCall(this, callerNumber, call.details.callerDisplayName)
+                }
                 try {
-                    setAudioRoute(android.telecom.CallAudioState.ROUTE_SPEAKER)
+                    routeToSpeaker()
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to set speaker route in CallService", e)
                 }
@@ -73,14 +79,14 @@ class CallService : InCallService() {
                 startActivity(intent)
             }
             else -> {
-                Log.d(TAG, "Unhandled call state: ${call.state}")
+                Log.d(TAG, "Unhandled call state: $initialState")
             }
         }
     }
 
-    override fun onCallAudioStateChanged(audioState: android.telecom.CallAudioState?) {
-        super.onCallAudioStateChanged(audioState)
-        Log.d(TAG, "onCallAudioStateChanged: route = ${audioState?.route}")
+    @Suppress("DEPRECATION")
+    private fun routeToSpeaker() {
+        setAudioRoute(android.telecom.CallAudioState.ROUTE_SPEAKER)
     }
 
     override fun onCallRemoved(call: Call) {
@@ -89,6 +95,16 @@ class CallService : InCallService() {
         if (CallManager.currentCall == call) {
             CallManager.setCall(null)
         }
-        CallManager.inCallService = null
+        CallManager.detachService(this)
+    }
+
+    override fun onDestroy() {
+        CallManager.detachService(this)
+        super.onDestroy()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun Call.compatState(): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) details.state else state
     }
 }

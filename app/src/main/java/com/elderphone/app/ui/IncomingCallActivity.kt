@@ -70,7 +70,7 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
         val displayName = CallManager.getCallerDisplayName() ?: intent.getStringExtra("display_name")
 
         if (number.isNotBlank()) {
-            com.elderphone.app.data.RecentIncomingCallManager.recordIncomingCall(this, number, displayName)
+            com.elderphone.app.data.RecentCallManager.recordCall(this, number, displayName)
         }
 
         // Lookup in contacts database
@@ -107,7 +107,8 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
                 } else {
                     // Unknown / New phone number calling
                     binding.tvIncomingCallStatus.text = getString(R.string.unknown_caller_new)
-                    binding.tvIncomingCallerName.text = displayName?.ifBlank { null } ?: number.ifBlank { "ไม่ทราบหมายเลข" }
+                    binding.tvIncomingCallerName.text = displayName?.ifBlank { null }
+                        ?: number.ifBlank { getString(R.string.unknown_number) }
                     binding.tvIncomingCallerNumber.text = if (displayName != null && displayName != number) number else ""
                     binding.imgIncomingAvatar.visibility = View.VISIBLE
                     binding.imgIncomingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
@@ -186,12 +187,7 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
     }
 
     private fun vibrate() {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(80, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(80)
-        }
+        val vibrator = getSystemService(Vibrator::class.java) ?: return
+        vibrator.vibrate(VibrationEffect.createOneShot(80, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 }

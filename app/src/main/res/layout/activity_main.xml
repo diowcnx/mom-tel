@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg_main">
+    android:layout_height="match_parent">
 
     <!-- Top Bar -->
     <LinearLayout
@@ -25,14 +24,14 @@
 
         <ImageView
             android:id="@+id/btnToggleLock"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="6dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@string/cd_toggle_lock"
             android:focusable="true"
-            android:padding="5dp"
+            android:padding="11dp"
             android:src="@drawable/ic_lock_open"
             app:tint="#B3FFFFFF" />
 
@@ -41,6 +40,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
             android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:ellipsize="end"
@@ -58,7 +59,7 @@
             android:id="@+id/btnDialpad"
             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
             android:layout_width="wrap_content"
-            android:layout_height="46dp"
+            android:layout_height="48dp"
             android:backgroundTint="#1976D2"
             android:fontFamily="@font/prompt_medium"
             android:insetTop="0dp"
@@ -183,7 +184,7 @@
             android:insetBottom="0dp"
             android:maxLines="1"
             android:paddingHorizontal="4dp"
-            android:text="หน้าก่อน"
+            android:text="@string/btn_prev_page"
             android:textColor="@color/text_white"
             android:textSize="20sp"
             app:cornerRadius="20dp"
@@ -207,7 +208,7 @@
             android:insetBottom="0dp"
             android:maxLines="1"
             android:paddingHorizontal="4dp"
-            android:text="หน้าถัดไป"
+            android:text="@string/btn_next_page"
             android:textColor="@color/text_white"
             android:textSize="20sp"
             app:cornerRadius="20dp"

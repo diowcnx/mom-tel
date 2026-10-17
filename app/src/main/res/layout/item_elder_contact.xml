@@ -9,6 +9,7 @@
     android:clickable="true"
     android:focusable="false"
     android:foreground="?attr/selectableItemBackground"
+    android:importantForAccessibility="no"
     app:cardBackgroundColor="@color/bg_card"
     app:cardCornerRadius="24dp"
     app:cardElevation="3dp"
@@ -34,7 +35,7 @@
             android:layout_weight="1"
             android:layout_marginBottom="6dp"
             android:clickable="true"
-            android:focusable="false"
+            android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
 
             <!-- Background shape / rounded rectangle -->
@@ -77,9 +78,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:focusable="false"
+            android:focusable="true"
             android:background="?attr/selectableItemBackground"
             android:gravity="center"
+            android:minHeight="48dp"
             android:paddingHorizontal="4dp"
             android:paddingVertical="4dp">
 

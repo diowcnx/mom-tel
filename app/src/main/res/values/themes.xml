@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Theme.ElderPhone" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
@@ -11,7 +11,7 @@
         <item name="colorOnSecondary">@color/text_primary</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/primary</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/bg_main</item>
 
         <!-- Google Prompt Typography -->
@@ -24,7 +24,7 @@
         <item name="android:windowBackground">@color/bg_incoming</item>
         <item name="android:statusBarColor">@color/bg_incoming</item>
         <item name="android:navigationBarColor">@color/bg_incoming</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowShowWallpaper">false</item>
 
         <!-- Google Prompt Typography -->

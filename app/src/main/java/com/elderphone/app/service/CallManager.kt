@@ -3,11 +3,13 @@ package com.elderphone.app.service
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import android.telecom.Call
 import android.telecom.CallAudioState
 import android.telecom.InCallService
 import android.telecom.VideoProfile
 import android.util.Log
+import java.lang.ref.WeakReference
 
 object CallManager {
     private const val TAG = "CallManager"
@@ -15,7 +17,7 @@ object CallManager {
     var currentCall: Call? = null
         private set
 
-    var inCallService: InCallService? = null
+    private var inCallServiceRef = WeakReference<InCallService>(null)
 
     interface CallStateCallback {
         fun onCallStateChanged(state: Int)
@@ -51,7 +53,17 @@ object CallManager {
         currentCall = call
         currentCall?.registerCallback(callCallback)
         if (call != null) {
-            callbacks.forEach { it.onCallStateChanged(call.state) }
+            callbacks.forEach { it.onCallStateChanged(call.compatState()) }
+        }
+    }
+
+    fun attachService(service: InCallService) {
+        inCallServiceRef = WeakReference(service)
+    }
+
+    fun detachService(service: InCallService) {
+        if (inCallServiceRef.get() === service) {
+            inCallServiceRef.clear()
         }
     }
 
@@ -66,7 +78,7 @@ object CallManager {
 
     fun hangup() {
         try {
-            if (currentCall?.state == Call.STATE_RINGING) {
+            if (currentCall?.compatState() == Call.STATE_RINGING) {
                 currentCall?.reject(false, null)
             } else {
                 currentCall?.disconnect()
@@ -77,11 +89,13 @@ object CallManager {
         }
     }
 
+    @Suppress("DEPRECATION")
     fun setSpeakerphone(enable: Boolean, context: Context) {
         try {
+            val inCallService = inCallServiceRef.get()
             if (inCallService != null) {
                 val route = if (enable) CallAudioState.ROUTE_SPEAKER else CallAudioState.ROUTE_EARPIECE
-                inCallService?.setAudioRoute(route)
+                inCallService.setAudioRoute(route)
             }
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             audioManager.isSpeakerphoneOn = enable
@@ -93,7 +107,7 @@ object CallManager {
 
     fun setMuted(muted: Boolean) {
         try {
-            inCallService?.setMuted(muted)
+            inCallServiceRef.get()?.setMuted(muted)
         } catch (e: Exception) {
             Log.e(TAG, "Error muting microphone", e)
         }
@@ -112,5 +126,10 @@ object CallManager {
 
     fun getCallerDisplayName(): String? {
         return currentCall?.details?.callerDisplayName
+    }
+
+    @Suppress("DEPRECATION")
+    private fun Call.compatState(): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) details.state else state
     }
 }

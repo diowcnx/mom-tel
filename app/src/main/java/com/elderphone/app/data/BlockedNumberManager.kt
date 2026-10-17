@@ -15,16 +15,7 @@ object BlockedNumberManager {
     private const val KEY_BLOCKED_LIST = "blocked_list"
 
     fun normalizeNumber(rawNumber: String): String {
-        if (rawNumber.isBlank()) return ""
-        // Remove spaces, dashes, parentheses
-        var cleaned = rawNumber.replace(Regex("[^0-9+]"), "")
-        // Convert +66... to 0...
-        if (cleaned.startsWith("+66")) {
-            cleaned = "0" + cleaned.substring(3)
-        } else if (cleaned.startsWith("66") && cleaned.length >= 10) {
-            cleaned = "0" + cleaned.substring(2)
-        }
-        return cleaned
+        return PhoneNumberUtils.normalizeForComparison(rawNumber)
     }
 
     private fun getPrefs(context: Context): SharedPreferences {
@@ -54,11 +45,7 @@ object BlockedNumberManager {
         if (rawNumber.isBlank()) return false
         val normalized = normalizeNumber(rawNumber)
         if (normalized.isBlank()) return false
-        return blockedList.any {
-            it.normalizedNumber == normalized ||
-            (it.normalizedNumber.endsWith(normalized) && normalized.length >= 8) ||
-            (normalized.endsWith(it.normalizedNumber) && it.normalizedNumber.length >= 8)
-        }
+        return blockedList.any { PhoneNumberUtils.areEquivalent(it.normalizedNumber, normalized) }
     }
 
     fun blockNumber(context: Context, rawNumber: String, label: String = ""): Boolean {

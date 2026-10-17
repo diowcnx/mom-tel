@@ -14,7 +14,7 @@ import com.elderphone.app.model.ElderContact
 
 class SearchContactAdapter(
     private val context: Context,
-    private var contactList: List<ElderContact>,
+    private val contactList: List<ElderContact>,
     private val onPhotoClicked: (ElderContact) -> Unit = {},
     private val onContactClicked: (ElderContact) -> Unit
 ) : RecyclerView.Adapter<SearchContactAdapter.ViewHolder>() {
@@ -34,6 +34,10 @@ class SearchContactAdapter(
 
         b.tvSearchContactName.text = contact.name
         b.tvSearchContactNumber.text = contact.phoneNumber
+        b.layoutSearchAvatar.contentDescription =
+            context.getString(R.string.cd_call_contact, contact.name)
+        b.root.contentDescription =
+            context.getString(R.string.cd_manage_contact, contact.name)
 
         if (!contact.photoUri.isNullOrBlank()) {
             b.imgSearchAvatar.visibility = View.VISIBLE
@@ -58,9 +62,6 @@ class SearchContactAdapter(
             onPhotoClicked(contact)
         }
         b.layoutSearchAvatar.setOnClickListener(onAvatarClick)
-        b.imgSearchAvatar.setOnClickListener(onAvatarClick)
-        b.viewSearchAvatarBg.setOnClickListener(onAvatarClick)
-        b.tvSearchAvatarInitial.setOnClickListener(onAvatarClick)
 
         // Tap card body -> Show action dialog
         b.root.setOnClickListener {
@@ -69,9 +70,4 @@ class SearchContactAdapter(
     }
 
     override fun getItemCount(): Int = contactList.size
-
-    fun updateData(newList: List<ElderContact>) {
-        contactList = newList
-        notifyDataSetChanged()
-    }
 }

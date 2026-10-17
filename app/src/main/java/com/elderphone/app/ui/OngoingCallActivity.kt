@@ -1,7 +1,6 @@
 package com.elderphone.app.ui
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -103,7 +102,8 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
                         binding.viewOngoingAvatarBg.background.setTint(ContextCompat.getColor(this, colorRes))
                     }
                 } else {
-                    binding.tvOngoingCallerName.text = displayName?.ifBlank { null } ?: number.ifBlank { "กำลังสนทนา" }
+                    binding.tvOngoingCallerName.text = displayName?.ifBlank { null }
+                        ?: number.ifBlank { getString(R.string.ongoing_call_title) }
                     binding.tvOngoingCallerNumber.text = if (displayName != null && displayName != number) number else ""
                     binding.imgOngoingAvatar.visibility = View.VISIBLE
                     binding.imgOngoingAvatar.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
@@ -207,12 +207,7 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
     }
 
     private fun vibrate() {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(50)
-        }
+        val vibrator = getSystemService(Vibrator::class.java) ?: return
+        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 }

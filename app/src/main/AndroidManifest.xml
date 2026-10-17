@@ -15,15 +15,24 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Calling is the core purpose of the app; declare the implied hardware explicitly. -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="true" />
 
     <application
         android:name=".ElderPhoneApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ElderPhone">
+        android:theme="@style/Theme.ElderPhone"
+        tools:targetApi="s">
 
         <!-- Main Home Activity (6-contact grid + pagination) -->
         <activity
@@ -31,6 +40,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
             android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -59,6 +69,8 @@
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
             android:launchMode="singleTop"
+            tools:ignore="LockedOrientationActivity"
+            tools:targetApi="o_mr1"
             android:theme="@style/Theme.ElderPhone.FullScreenCall" />
 
         <!-- Ongoing Call Activity -->
@@ -68,7 +80,9 @@
             android:screenOrientation="portrait"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:theme="@style/Theme.ElderPhone.FullScreenCall" />
+            android:theme="@style/Theme.ElderPhone.FullScreenCall"
+            tools:ignore="LockedOrientationActivity"
+            tools:targetApi="o_mr1" />
 
         <!-- Dialpad Activity (For unlisted / manual numbers) -->
         <activity
@@ -77,7 +91,9 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:screenOrientation="portrait"
-            android:label="@string/dialpad_title" />
+            android:label="@string/dialpad_title"
+            tools:ignore="LockedOrientationActivity"
+            tools:targetApi="o_mr1" />
 
         <!-- InCallService required for default phone handling -->
         <service

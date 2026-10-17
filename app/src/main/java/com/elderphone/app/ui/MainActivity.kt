@@ -39,6 +39,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.signature.ObjectKey
@@ -48,6 +49,7 @@ import android.widget.PopupWindow
 import com.elderphone.app.R
 import com.elderphone.app.data.BlockedNumberManager
 import com.elderphone.app.data.ContactRepository
+import com.elderphone.app.data.RecentCallManager
 import com.elderphone.app.databinding.ActivityMainBinding
 import com.elderphone.app.databinding.DialogContactActionBinding
 import com.elderphone.app.databinding.DialogEditNameBinding
@@ -78,6 +80,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val contacts = mutableListOf<ElderContact>()
     private var currentPage = 0
+    private var latestDisplayedCallTime = 0L
     private val contactsPerPage = 6
 
     private var currentEditingContact: ElderContact? = null
@@ -105,9 +108,8 @@ class MainActivity : AppCompatActivity() {
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.entries.all { it.value }
-        if (allGranted) {
+    ) {
+        if (hasPermissions()) {
             loadContacts()
         } else {
             Toast.makeText(
@@ -359,10 +361,10 @@ class MainActivity : AppCompatActivity() {
                     refreshList()
                     loadContacts()
                 } else {
-                    Toast.makeText(this, "เบอร์นี้อยู่ในรายการบล็อกแล้ว", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.number_already_blocked, Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(this, "กรุณากรอกเบอร์โทรศัพท์", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.error_block_number_required, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -440,19 +442,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createLockGuardNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_LOCK_GUARD,
-                "Elder Lock Guard",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Keeps app locked in foreground"
-                setSound(null, null)
-                enableVibration(false)
-            }
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-            nm?.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            CHANNEL_LOCK_GUARD,
+            getString(R.string.notification_channel_lock_name),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = getString(R.string.notification_channel_lock_description)
+            setSound(null, null)
+            enableVibration(false)
         }
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        nm?.createNotificationChannel(channel)
     }
 
     private fun triggerFullScreenRelock() {
@@ -479,8 +479,15 @@ class MainActivity : AppCompatActivity() {
                 .setAutoCancel(true)
                 .build()
 
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-            nm?.notify(9999, notification)
+            val canPostNotifications = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+            if (canPostNotifications) {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                nm?.notify(9999, notification)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed fullScreenIntent: ${e.message}")
         }
@@ -565,12 +572,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun isInLockTaskMode(): Boolean {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return false
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
-        } else {
-            @Suppress("DEPRECATION")
-            am.isInLockTaskMode
-        }
+        return am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
     }
 
 
@@ -629,16 +631,25 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_CALL_LOG
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
         requestPermissionsLauncher.launch(permissions.toTypedArray())
     }
 
     private fun loadContacts() {
         Thread {
+            val latestCallTime = RecentCallManager.getLatestCall(this)?.third ?: 0L
             val loaded = ContactRepository.getAllContacts(this)
             runOnUiThread {
                 contacts.clear()
                 contacts.addAll(loaded)
-                if (currentPage >= getTotalPages()) {
+                if (latestCallTime > latestDisplayedCallTime) {
+                    // A completed/started call should bring the user back to page one where the
+                    // promoted contact is visible, including calls started from the dial pad.
+                    currentPage = 0
+                    latestDisplayedCallTime = latestCallTime
+                } else if (currentPage >= getTotalPages()) {
                     currentPage = max(0, getTotalPages() - 1)
                 }
                 displayPage(currentPage)
@@ -694,6 +705,10 @@ class MainActivity : AppCompatActivity() {
 
             // Populate Contact Info
             itemBinding.tvContactName.text = contact.name
+            itemBinding.layoutContactPhoto.contentDescription =
+                getString(R.string.cd_call_contact, contact.name)
+            itemBinding.layoutContactName.contentDescription =
+                getString(R.string.cd_manage_contact, contact.name)
 
             if (!contact.photoUri.isNullOrBlank()) {
                 itemBinding.imgAvatar.visibility = View.VISIBLE
@@ -754,6 +769,8 @@ class MainActivity : AppCompatActivity() {
 
         dialogBinding.actionContactName.text = contact.name
         dialogBinding.actionContactNumber.text = contact.phoneNumber
+        dialogBinding.layoutActionAvatar.contentDescription =
+            getString(R.string.cd_call_contact, contact.name)
 
         if (!contact.photoUri.isNullOrBlank()) {
             dialogBinding.actionAvatarImg.visibility = View.VISIBLE
@@ -780,9 +797,6 @@ class MainActivity : AppCompatActivity() {
             callContact(contact)
         }
         dialogBinding.layoutActionAvatar.setOnClickListener(onCallFromAvatar)
-        dialogBinding.actionAvatarImg.setOnClickListener(onCallFromAvatar)
-        dialogBinding.actionAvatarBg.setOnClickListener(onCallFromAvatar)
-        dialogBinding.actionAvatarInitial.setOnClickListener(onCallFromAvatar)
 
         // Call button
         dialogBinding.btnActionCall.setOnClickListener {
@@ -806,7 +820,7 @@ class MainActivity : AppCompatActivity() {
         // Block / Unblock Contact button
         val isBlocked = BlockedNumberManager.isBlocked(this, contact.phoneNumber)
         if (isBlocked) {
-            dialogBinding.btnActionToggleBlock.text = "ปลดบล็อกเบอร์นี้"
+            dialogBinding.btnActionToggleBlock.setText(R.string.btn_unblock_number)
             dialogBinding.btnActionToggleBlock.setTextColor(ContextCompat.getColor(this, R.color.primary))
             dialogBinding.btnActionToggleBlock.iconTint = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary))
         } else {
@@ -853,7 +867,7 @@ class MainActivity : AppCompatActivity() {
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogBinding.tvEditNamePhoneNumber.text = "เบอร์โทร: ${contact.phoneNumber}"
+        dialogBinding.tvEditNamePhoneNumber.text = getString(R.string.contact_phone_number, contact.phoneNumber)
 
         // Query structured name from database (First name & Surname)
         val (initialGiven, initialFamily) = ContactRepository.getContactStructuredName(this, contact.id)
@@ -877,7 +891,7 @@ class MainActivity : AppCompatActivity() {
             val newLast = dialogBinding.etEditContactLastName.text?.toString()?.trim().orEmpty()
 
             if (newFirst.isBlank() && newLast.isBlank()) {
-                Toast.makeText(this, "กรุณากรอกชื่อหรือนามสกุลอย่างน้อย 1 ช่อง", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.error_name_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -894,10 +908,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 runOnUiThread {
                     if (success) {
-                        Toast.makeText(this, "บันทึกชื่อเป็น \"$fullName\" สำเร็จ", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.contact_name_saved, fullName), Toast.LENGTH_SHORT).show()
                         loadContacts()
                     } else {
-                        Toast.makeText(this, "ไม่สามารถบันทึกชื่อได้ กรุณาตรวจสอบสิทธิ์", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, R.string.contact_name_save_failed, Toast.LENGTH_SHORT).show()
                     }
                 }
             }.start()
@@ -998,7 +1012,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             isNavigatingInternally = false
             Log.e("MainActivity", "Error launching camera", e)
-            Toast.makeText(this, "ไม่สามารถเปิดกล้องได้: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.camera_open_failed, e.message.orEmpty()), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1010,7 +1024,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             isNavigatingInternally = false
             Log.e("MainActivity", "Error launching gallery picker", e)
-            Toast.makeText(this, "ไม่สามารถเปิดคลังภาพได้", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.gallery_open_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1025,7 +1039,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             isNavigatingInternally = false
             Log.e("MainActivity", "Error launching system contact editor", e)
-            Toast.makeText(this, "ไม่สามารถเปิดสมุดโทรศัพท์ได้", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.contact_editor_open_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1040,20 +1054,20 @@ class MainActivity : AppCompatActivity() {
                     // Check and fix EXIF rotation if needed
                     try {
                         java.io.ByteArrayInputStream(bytes).use { exifStream ->
-                            val exif = android.media.ExifInterface(exifStream)
+                            val exif = ExifInterface(exifStream)
                             val orientation = exif.getAttributeInt(
-                                android.media.ExifInterface.TAG_ORIENTATION,
-                                android.media.ExifInterface.ORIENTATION_NORMAL
+                                ExifInterface.TAG_ORIENTATION,
+                                ExifInterface.ORIENTATION_NORMAL
                             )
                             val matrix = android.graphics.Matrix()
                             when (orientation) {
-                                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
-                                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
-                                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
                             }
-                            if (orientation == android.media.ExifInterface.ORIENTATION_ROTATE_90 ||
-                                orientation == android.media.ExifInterface.ORIENTATION_ROTATE_180 ||
-                                orientation == android.media.ExifInterface.ORIENTATION_ROTATE_270
+                            if (orientation == ExifInterface.ORIENTATION_ROTATE_90 ||
+                                orientation == ExifInterface.ORIENTATION_ROTATE_180 ||
+                                orientation == ExifInterface.ORIENTATION_ROTATE_270
                             ) {
                                 bitmap = Bitmap.createBitmap(
                                     bitmap!!, 0, 0, bitmap!!.width, bitmap!!.height, matrix, true
@@ -1078,14 +1092,14 @@ class MainActivity : AppCompatActivity() {
                             Toast.makeText(this, getString(R.string.photo_updated_success), Toast.LENGTH_SHORT).show()
                             loadContacts()
                         } else {
-                            Toast.makeText(this, "ไม่สามารถบันทึกรูปภาพได้", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, R.string.photo_save_failed, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error processing photo", e)
                 runOnUiThread {
-                    Toast.makeText(this, "เกิดข้อผิดพลาดในการประมวลผลรูปภาพ", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.photo_process_failed, Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
@@ -1128,16 +1142,18 @@ class MainActivity : AppCompatActivity() {
             if (telecomManager != null && isDefaultDialer()) {
                 Log.d(TAG, "Placing call via TelecomManager to $cleanNumber")
                 telecomManager.placeCall(uri, Bundle())
+                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             } else {
                 Log.d(TAG, "Placing call via ACTION_CALL to $cleanNumber")
                 val intent = Intent(Intent.ACTION_CALL, uri).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
+                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             }
         } catch (e: SecurityException) {
             isNavigatingInternally = false
-            Toast.makeText(this, "กรุณาอนุญาตสิทธิ์การโทรในระบบ", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_call_permission, Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             try {
                 val uri = Uri.fromParts("tel", cleanNumber, null)
@@ -1145,20 +1161,16 @@ class MainActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
+                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             } catch (e2: Exception) {
                 isNavigatingInternally = false
-                Toast.makeText(this, "ไม่สามารถโทรออกได้: ${e2.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_call_failed, e2.message.orEmpty()), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun vibrate() {
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(50)
-        }
+        val vibrator = getSystemService(Vibrator::class.java) ?: return
+        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 }

@@ -20,6 +20,19 @@ import java.io.FileOutputStream
 object ContactRepository {
     private const val TAG = "ContactRepository"
 
+    private data class RecentCallEntry(
+        val rawNumber: String,
+        val normalizedNumber: String,
+        val cachedName: String?,
+        val timestamp: Long
+    )
+
+    private data class CallLogStats(
+        val counts: MutableMap<String, Int> = mutableMapOf(),
+        val lastDates: MutableMap<String, Long> = mutableMapOf(),
+        val recentCalls: MutableList<RecentCallEntry> = mutableListOf()
+    )
+
     private val avatarColors = intArrayOf(
         R.color.avatar_color_1,
         R.color.avatar_color_2,
@@ -34,36 +47,46 @@ object ContactRepository {
         return avatarColors[hash % avatarColors.size]
     }
 
-    private fun getCallLogStats(context: Context): Pair<Map<String, Int>, Map<String, Long>> {
-        val counts = mutableMapOf<String, Int>()
-        val lastDates = mutableMapOf<String, Long>()
+    private fun getCallLogStats(context: Context): CallLogStats {
+        val stats = CallLogStats()
 
         val projection = arrayOf(
             CallLog.Calls.NUMBER,
-            CallLog.Calls.DATE
+            CallLog.Calls.DATE,
+            CallLog.Calls.CACHED_NAME
         )
 
         try {
             val cursor: Cursor? = context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
                 projection,
-                null,
-                null,
+                "${CallLog.Calls.TYPE} IN (?, ?, ?, ?)",
+                arrayOf(
+                    CallLog.Calls.INCOMING_TYPE.toString(),
+                    CallLog.Calls.OUTGOING_TYPE.toString(),
+                    CallLog.Calls.MISSED_TYPE.toString(),
+                    CallLog.Calls.REJECTED_TYPE.toString()
+                ),
                 "${CallLog.Calls.DATE} DESC"
             )
 
             cursor?.use {
                 val numberIndex = it.getColumnIndex(CallLog.Calls.NUMBER)
                 val dateIndex = it.getColumnIndex(CallLog.Calls.DATE)
+                val nameIndex = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
 
                 while (it.moveToNext()) {
                     val rawNum = if (numberIndex != -1) it.getString(numberIndex) ?: "" else ""
                     val date = if (dateIndex != -1) it.getLong(dateIndex) else 0L
+                    val cachedName = if (nameIndex != -1) it.getString(nameIndex) else null
                     val norm = PhoneNumberUtils.normalizeForComparison(rawNum)
                     if (norm.isNotBlank()) {
-                        counts[norm] = (counts[norm] ?: 0) + 1
-                        if (!lastDates.containsKey(norm)) {
-                            lastDates[norm] = date
+                        stats.counts[norm] = (stats.counts[norm] ?: 0) + 1
+                        if (!stats.lastDates.containsKey(norm)) {
+                            stats.lastDates[norm] = date
+                            stats.recentCalls.add(
+                                RecentCallEntry(rawNum, norm, cachedName, date)
+                            )
                         }
                     }
                 }
@@ -74,14 +97,32 @@ object ContactRepository {
             Log.e(TAG, "Error querying call logs", e)
         }
 
-        return Pair(counts, lastDates)
+        // Calls started by this app are stored immediately because Android can take a moment to
+        // publish them to CallLog. Merge that value into the same chronology without duplicating
+        // the caller once the system entry is present.
+        RecentCallManager.getLatestCall(context)?.let { (number, name, timestamp) ->
+            val normalized = PhoneNumberUtils.normalizeForComparison(number)
+            if (normalized.isNotBlank() && timestamp > 0L) {
+                stats.counts[normalized] = maxOf(stats.counts[normalized] ?: 0, 1)
+                stats.lastDates[normalized] = maxOf(stats.lastDates[normalized] ?: 0L, timestamp)
+                stats.recentCalls.removeAll {
+                    PhoneNumberUtils.areEquivalent(it.normalizedNumber, normalized)
+                }
+                stats.recentCalls.add(
+                    RecentCallEntry(number, normalized, name, timestamp)
+                )
+                stats.recentCalls.sortByDescending { it.timestamp }
+            }
+        }
+
+        return stats
     }
 
     fun getAllContacts(context: Context): List<ElderContact> {
         val contactsList = mutableListOf<ElderContact>()
         val seenNumbers = mutableSetOf<String>()
 
-        val (callCounts, lastCallDates) = getCallLogStats(context)
+        val callLogStats = getCallLogStats(context)
         val blockedList = BlockedNumberManager.getBlockedNumbers(context)
 
         val projection = arrayOf(
@@ -123,8 +164,8 @@ object ContactRepository {
                     if (!isUssd && !isBlocked && normalizedNumber.isNotBlank() && !seenNumbers.contains(normalizedNumber)) {
                         seenNumbers.add(normalizedNumber)
 
-                        val count = callCounts[normalizedNumber] ?: 0
-                        val lastDate = lastCallDates[normalizedNumber] ?: 0L
+                        val count = callLogStats.counts[normalizedNumber] ?: 0
+                        val lastDate = callLogStats.lastDates[normalizedNumber] ?: 0L
 
                         val customFile = getCustomPhotoFile(context, id)
                         val customFileByNum = getCustomPhotoFileByNumber(context, normalizedNumber)
@@ -158,64 +199,41 @@ object ContactRepository {
             Log.e(TAG, "Error querying contacts", e)
         }
 
-        // Sort contacts:
-        // 1. Starred/Favorites first
-        // 2. Frequently called (highest callCount)
-        // 3. Recently called (highest lastCallDate)
-        // 4. Demote system carrier contacts starting with "." or punctuation
-        // 5. Alphabetical by display name
-        contactsList.sortWith(
-            compareByDescending<ElderContact> { it.isFavorite }
-                .thenByDescending { it.callCount }
-                .thenByDescending { it.lastCallDate }
-                .thenBy { it.name.startsWith(".") || it.name.startsWith("*") }
-                .thenBy { it.name.lowercase() }
-        )
-
-        // The latest call always belongs at the first position so it is visible on page one.
-        try {
-            val recentCall = RecentCallManager.getLatestCall(context)
-            if (recentCall != null) {
-                val recentRawNumber = recentCall.first
-                val recentCleaned = BlockedNumberManager.normalizeNumber(recentRawNumber)
-
-                if (recentCleaned.isNotBlank() && !BlockedNumberManager.isBlocked(recentRawNumber, blockedList)) {
-                    val matchIndex = contactsList.indexOfFirst { c ->
-                        val cCleaned = BlockedNumberManager.normalizeNumber(c.phoneNumber)
-                        PhoneNumberUtils.areEquivalent(cCleaned, recentCleaned)
-                    }
-
-                    if (matchIndex != -1) {
-                        val contact = contactsList.removeAt(matchIndex)
-                        contactsList.add(0, contact)
-                        Log.d(TAG, "Promoted latest call to #1: ${contact.name}")
-                    } else {
-                        // The number is not saved yet: still expose it on the first home page.
-                        val customFileByNum = getCustomPhotoFileByNumber(context, recentCleaned)
-                        val resolvedPhotoUri = if (customFileByNum.exists()) Uri.fromFile(customFileByNum).toString() else null
-                        val photoTime = if (customFileByNum.exists()) customFileByNum.lastModified() else 0L
-
-                        val displayName = recentCall.second?.ifBlank { null } ?: recentRawNumber
-                        val newContact = ElderContact(
-                            id = -1L,
-                            name = displayName,
-                            phoneNumber = recentRawNumber,
-                            photoUri = resolvedPhotoUri,
-                            isFavorite = false,
-                            callCount = 1,
-                            lastCallDate = recentCall.third,
-                            photoLastModified = photoTime
-                        )
-                        contactsList.add(0, newContact)
-                        Log.d(TAG, "Added unsaved latest call to #1: $displayName ($recentRawNumber)")
-                    }
-                }
+        // Include every distinct caller from call history, not just the newest one. Saved contacts
+        // are already represented above; unsaved numbers receive lightweight home-screen entries.
+        callLogStats.recentCalls.forEachIndexed { index, recentCall ->
+            val isUssd = recentCall.rawNumber.startsWith("*") || recentCall.rawNumber.endsWith("#")
+            val isBlocked = BlockedNumberManager.isBlocked(recentCall.rawNumber, blockedList)
+            val alreadyPresent = seenNumbers.any {
+                PhoneNumberUtils.areEquivalent(it, recentCall.normalizedNumber)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error promoting latest call", e)
+
+            if (!isUssd && !isBlocked && !alreadyPresent) {
+                val customPhoto = getCustomPhotoFileByNumber(context, recentCall.normalizedNumber)
+                val legacyPhoto = getCustomPhotoFileByNumber(context, normalizePhoneNumber(recentCall.rawNumber))
+                val photoFile = when {
+                    customPhoto.exists() -> customPhoto
+                    legacyPhoto.exists() -> legacyPhoto
+                    else -> null
+                }
+                contactsList.add(
+                    ElderContact(
+                        id = -(index + 1L),
+                        name = recentCall.cachedName?.ifBlank { null } ?: recentCall.rawNumber,
+                        phoneNumber = recentCall.rawNumber,
+                        photoUri = photoFile?.let { Uri.fromFile(it).toString() },
+                        isFavorite = false,
+                        callCount = callLogStats.counts[recentCall.normalizedNumber] ?: 1,
+                        lastCallDate = recentCall.timestamp,
+                        photoLastModified = photoFile?.lastModified() ?: 0L
+                    )
+                )
+                seenNumbers.add(recentCall.normalizedNumber)
+            }
         }
 
-        return contactsList
+        val latestNumber = callLogStats.recentCalls.firstOrNull()?.rawNumber
+        return ContactOrdering.order(contactsList, latestNumber)
     }
 
     fun findContactByNumber(context: Context, number: String): ElderContact? {

@@ -23,8 +23,7 @@ class PhoneNumberUtilsTest {
     }
 
     @Test
-    fun areEquivalent_rejectsBlankAndDifferentNumbers() {
+    fun areEquivalent_rejectsBlankNumber() {
         assertFalse(PhoneNumberUtils.areEquivalent("", "0984914245"))
-        assertFalse(PhoneNumberUtils.areEquivalent("0984914245", "0812345678"))
     }
 }

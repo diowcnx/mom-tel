@@ -196,7 +196,7 @@ class DialpadActivity : AppCompatActivity() {
         if (cleanNumber.isBlank()) return
 
         MainActivity.isNavigatingInternally = true
-        Log.d(TAG, "callNumber: Calling $cleanNumber")
+        Log.d(TAG, "Starting dial-pad call")
 
         try {
             val uri = if (cleanNumber.contains("#")) {
@@ -206,12 +206,12 @@ class DialpadActivity : AppCompatActivity() {
             }
             val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
             if (telecomManager != null && isDefaultDialer()) {
-                Log.d(TAG, "Placing call via TelecomManager to $cleanNumber")
+                Log.d(TAG, "Placing dial-pad call via TelecomManager")
                 telecomManager.placeCall(uri, Bundle())
                 RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             } else {
-                Log.d(TAG, "Placing call via ACTION_CALL to $cleanNumber")
+                Log.d(TAG, "Placing dial-pad call via ACTION_CALL")
                 val intent = Intent(Intent.ACTION_CALL, uri).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }

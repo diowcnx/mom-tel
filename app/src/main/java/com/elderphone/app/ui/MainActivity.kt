@@ -1134,17 +1134,17 @@ class MainActivity : AppCompatActivity() {
 
         vibrate()
         isNavigatingInternally = true
-        Log.d(TAG, "callContact: Calling $cleanNumber (display: ${contact.name})")
+        Log.d(TAG, "Starting contact call")
 
         try {
             val uri = Uri.fromParts("tel", cleanNumber, null)
             val telecomManager = getSystemService(Context.TELECOM_SERVICE) as? android.telecom.TelecomManager
             if (telecomManager != null && isDefaultDialer()) {
-                Log.d(TAG, "Placing call via TelecomManager to $cleanNumber")
+                Log.d(TAG, "Placing contact call via TelecomManager")
                 telecomManager.placeCall(uri, Bundle())
                 RecentCallManager.recordCall(this, cleanNumber, contact.name)
             } else {
-                Log.d(TAG, "Placing call via ACTION_CALL to $cleanNumber")
+                Log.d(TAG, "Placing contact call via ACTION_CALL")
                 val intent = Intent(Intent.ACTION_CALL, uri).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }

@@ -284,7 +284,7 @@ object ContactRepository {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error looking up contact by number: $number", e)
+            Log.e(TAG, "Error looking up contact by number", e)
         }
 
         // Fallback: search in getAllContacts by normalized number match
@@ -298,7 +298,7 @@ object ContactRepository {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error in fallback contact lookup for: $number", e)
+            Log.e(TAG, "Error in fallback contact lookup", e)
         }
 
         return null
@@ -596,7 +596,7 @@ object ContactRepository {
 
             if (ops.isNotEmpty()) {
                 context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
-                Log.d(TAG, "Successfully updated contact name for contactId=$contactId: first='$cleanFirst', last='$cleanLast', full='$fullName'")
+                Log.d(TAG, "Successfully updated contact name for contactId=$contactId")
             }
             true
         } catch (e: Exception) {
@@ -646,7 +646,7 @@ object ContactRepository {
             val results = context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
             val rawContactUri = results[0]?.uri
             val rawContactId = rawContactUri?.lastPathSegment?.toLongOrNull() ?: 1L
-            Log.d(TAG, "Successfully inserted new contact: $fullName ($phoneNumber), rawContactId=$rawContactId")
+            Log.d(TAG, "Successfully inserted new contact with rawContactId=$rawContactId")
             rawContactId
         } catch (e: Exception) {
             Log.e(TAG, "Error inserting new contact", e)

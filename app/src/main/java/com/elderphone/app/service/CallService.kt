@@ -25,7 +25,7 @@ class CallService : InCallService() {
         val callerNumber = call.details.handle?.schemeSpecificPart ?: ""
         if (initialState == Call.STATE_RINGING && callerNumber.isNotBlank()) {
             if (BlockedNumberManager.isBlocked(this, callerNumber)) {
-                Log.i(TAG, "Blocked call from: $callerNumber - Auto-rejecting")
+                Log.i(TAG, "Auto-rejecting a blocked call")
                 try {
                     call.reject(false, null)
                 } catch (e: Exception) {

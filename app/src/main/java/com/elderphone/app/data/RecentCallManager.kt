@@ -35,7 +35,7 @@ object RecentCallManager {
             .putString(KEY_NAME, name?.ifBlank { null })
             .putLong(KEY_TIME, System.currentTimeMillis())
             .apply()
-        Log.d(TAG, "Recorded recent call: number=$number, name=$name")
+        Log.d(TAG, "Recorded recent call metadata")
     }
 
     fun getLatestCall(context: Context): Triple<String, String?, Long>? {

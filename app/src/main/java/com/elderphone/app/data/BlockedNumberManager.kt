@@ -45,6 +45,7 @@ object BlockedNumberManager {
         if (rawNumber.isBlank()) return false
         val normalized = normalizeNumber(rawNumber)
         if (normalized.isBlank()) return false
+        if (PhoneNumberUtils.isBangkokLandline(normalized)) return true
         return blockedList.any { PhoneNumberUtils.areEquivalent(it.normalizedNumber, normalized) }
     }
 

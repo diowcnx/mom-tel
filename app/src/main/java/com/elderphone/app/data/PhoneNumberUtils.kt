@@ -2,6 +2,8 @@ package com.elderphone.app.data
 
 /** Pure phone-number helpers shared by call history, contacts, and blocking logic. */
 object PhoneNumberUtils {
+    private const val BANGKOK_LANDLINE_PREFIX = "02"
+
     fun normalizeForComparison(rawNumber: String): String {
         if (rawNumber.isBlank()) return ""
 
@@ -24,5 +26,10 @@ object PhoneNumberUtils {
                         secondNormalized.length >= 8 &&
                         (firstNormalized.endsWith(secondNormalized) ||
                                 secondNormalized.endsWith(firstNormalized)))
+    }
+
+    /** Returns true for normalized Thai Bangkok-area landline numbers. */
+    fun isBangkokLandline(rawNumber: String): Boolean {
+        return normalizeForComparison(rawNumber).startsWith(BANGKOK_LANDLINE_PREFIX)
     }
 }

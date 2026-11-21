@@ -16,6 +16,7 @@
     <string name="btn_next_page">หน้าถัดไป</string>
     <string name="btn_dialpad">แป้นกดตัวเลข</string>
     <string name="btn_back">ย้อนกลับ</string>
+    <string name="btn_back_home">กลับหน้าหลัก</string>
 
     <!-- Calling & Contacts -->
     <string name="empty_contacts">ยังไม่มีรายชื่อผู้ติดต่อ\nกรุณาเพิ่มเบอร์โทรศัพท์ในเครื่อง</string>

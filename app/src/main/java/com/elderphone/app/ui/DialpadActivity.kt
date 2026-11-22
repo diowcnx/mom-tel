@@ -194,6 +194,7 @@ class DialpadActivity : AppCompatActivity() {
             rawNumber.replace("[^0-9+*#]".toRegex(), "")
         }
         if (cleanNumber.isBlank()) return
+        if (com.elderphone.app.service.CallManager.returnToOngoingCall(this)) return
 
         MainActivity.isNavigatingInternally = true
         Log.d(TAG, "Starting dial-pad call")

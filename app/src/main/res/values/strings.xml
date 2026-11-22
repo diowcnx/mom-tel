@@ -30,6 +30,9 @@
     <string name="btn_answer">รับสาย</string>
     <string name="btn_decline">ไม่รับสาย</string>
     <string name="btn_hangup">วางสาย</string>
+    <string name="already_in_call">กำลังคุยสายอยู่ วางสายก่อนจึงจะโทรใหม่ได้</string>
+    <string name="hanging_up">กำลังวางสาย…</string>
+    <string name="hangup_failed">ยังวางสายไม่ได้ กรุณากดวางสายอีกครั้ง</string>
     <string name="btn_speaker_on">ลำโพง</string>
     <string name="btn_speaker_off">ปิดลำโพง</string>
     <string name="btn_mute">ปิดไมค์</string>

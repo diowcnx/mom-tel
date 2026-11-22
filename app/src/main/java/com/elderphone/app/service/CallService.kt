@@ -40,7 +40,39 @@ class CallService : InCallService() {
         }
 
         CallManager.attachService(this)
-        CallManager.setCall(call)
+
+        // No call-hold (the user cannot manage held calls): an incoming call-waiting call is
+        // rejected straight away, so the caller hears "busy" and the current call is untouched.
+        if (initialState == Call.STATE_RINGING && CallManager.hasOtherLiveCall(call)) {
+            Log.i(TAG, "Rejecting a call-waiting call while another call is in progress")
+            try {
+                call.reject(false, null)
+            } catch (e: Exception) {
+                try {
+                    call.disconnect()
+                } catch (e2: Exception) {
+                    Log.e(TAG, "Failed to reject call-waiting call", e2)
+                }
+            }
+            CallManager.scheduleResumeHeldCalls()
+            return
+        }
+
+        // Same rule for outgoing: a new call started while another call is in progress would
+        // put that call on hold. End the new call and keep the old one.
+        if (initialState != Call.STATE_RINGING && CallManager.hasOtherLiveCall(call)) {
+            Log.i(TAG, "Rejecting a second outgoing call while another call is in progress")
+            try {
+                call.disconnect()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to disconnect second outgoing call", e)
+            }
+            CallManager.returnToOngoingCall(this)
+            CallManager.scheduleResumeHeldCalls()
+            return
+        }
+
+        CallManager.addCall(call)
 
         when (initialState) {
             Call.STATE_RINGING -> {
@@ -92,10 +124,10 @@ class CallService : InCallService() {
     override fun onCallRemoved(call: Call) {
         super.onCallRemoved(call)
         Log.d(TAG, "onCallRemoved")
-        if (CallManager.currentCall == call) {
-            CallManager.setCall(null)
-        }
-        CallManager.detachService(this)
+        // Do not detach the service here: during call-waiting another call is still alive and
+        // still needs the service for hang-up, speaker and mute. onDestroy detaches it.
+        CallManager.removeCall(call)
+        CallManager.scheduleResumeHeldCalls()
     }
 
     override fun onDestroy() {

@@ -132,7 +132,7 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
         // Giant Decline Button
         binding.btnDecline.setOnClickListener {
             vibrate()
-            CallManager.hangup()
+            CallManager.rejectRinging()
             finish()
         }
 
@@ -147,13 +147,13 @@ class IncomingCallActivity : AppCompatActivity(), CallManager.CallStateCallback 
                     .setPositiveButton(R.string.btn_confirm_block) { _, _ ->
                         BlockedNumberManager.blockNumber(this, number)
                         Toast.makeText(this, getString(R.string.block_success), Toast.LENGTH_SHORT).show()
-                        CallManager.hangup()
+                        CallManager.rejectRinging()
                         finish()
                     }
                     .setNegativeButton(R.string.btn_cancel, null)
                     .show()
             } else {
-                CallManager.hangup()
+                CallManager.rejectRinging()
                 finish()
             }
         }

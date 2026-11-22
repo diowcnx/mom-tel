@@ -1131,6 +1131,7 @@ class MainActivity : AppCompatActivity() {
             rawNumber.replace("[^0-9+]".toRegex(), "")
         }
         if (cleanNumber.isBlank()) return
+        if (com.elderphone.app.service.CallManager.returnToOngoingCall(this)) return
 
         vibrate()
         isNavigatingInternally = true

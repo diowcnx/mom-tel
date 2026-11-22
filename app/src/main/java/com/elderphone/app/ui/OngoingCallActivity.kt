@@ -24,6 +24,12 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
     private lateinit var binding: ActivityOngoingCallBinding
     private var isSpeakerOn = true
     private var isMuted = false
+    private var hangupAttempts = 0
+
+    companion object {
+        private const val HANGUP_RETRY_DELAY_MS = 2000L
+        private const val MAX_HANGUP_ATTEMPTS = 3
+    }
 
     private val timerHandler = Handler(Looper.getMainLooper())
     private var callDurationSeconds = 0
@@ -62,7 +68,7 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
         super.onDestroy()
         android.util.Log.d("OngoingCallActivity", "onDestroy called")
         CallManager.unregisterCallback(this)
-        timerHandler.removeCallbacks(timerRunnable)
+        timerHandler.removeCallbacksAndMessages(null)
     }
 
     private fun startCallTimer() {
@@ -135,8 +141,38 @@ class OngoingCallActivity : AppCompatActivity(), CallManager.CallStateCallback {
         // Giant Hangup Button
         binding.btnOngoingHangup.setOnClickListener {
             vibrate()
-            CallManager.hangup()
+            hangupAttempts = 0
+            requestHangup()
+        }
+    }
+
+    /**
+     * Ask Telecom to end the call, but keep this screen (and its hang-up button) until the call
+     * is really gone. Closing the screen right away used to hide the button while the call
+     * was still connected.
+     */
+    private fun requestHangup() {
+        hangupAttempts++
+        val pending = CallManager.hangupAll()
+        if (!pending) {
             finish()
+            return
+        }
+        binding.btnOngoingHangup.text = getString(R.string.hanging_up)
+        timerHandler.removeCallbacks(hangupRetryRunnable)
+        timerHandler.postDelayed(hangupRetryRunnable, HANGUP_RETRY_DELAY_MS)
+    }
+
+    private val hangupRetryRunnable = Runnable {
+        if (isFinishing || isDestroyed) return@Runnable
+        if (!CallManager.hasLiveCall()) {
+            finish()
+        } else if (hangupAttempts < MAX_HANGUP_ATTEMPTS) {
+            android.util.Log.w("OngoingCallActivity", "Call still alive after hang-up; retrying")
+            requestHangup()
+        } else {
+            binding.btnOngoingHangup.text = getString(R.string.btn_hangup)
+            Toast.makeText(this, getString(R.string.hangup_failed), Toast.LENGTH_LONG).show()
         }
     }
 

@@ -53,6 +53,16 @@ object RecentCallManager {
             .maxByOrNull { it.third }
     }
 
+    fun clearIfMatches(context: Context, number: String) {
+        val normalized = BlockedNumberManager.normalizeNumber(number)
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).let { prefs ->
+            val stored = prefs.getString(KEY_NUMBER, null)
+            if (!stored.isNullOrBlank() && PhoneNumberUtils.areEquivalent(stored, normalized)) {
+                prefs.edit().remove(KEY_NUMBER).remove(KEY_NAME).remove(KEY_TIME).apply()
+            }
+        }
+    }
+
     private fun readStoredCall(
         context: Context,
         prefsName: String,

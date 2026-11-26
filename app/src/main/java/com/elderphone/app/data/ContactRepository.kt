@@ -304,6 +304,66 @@ object ContactRepository {
         return null
     }
 
+    /** Returns whether the number belongs to a saved contact, without using call-history entries. */
+    fun hasSavedContactByNumber(context: Context, number: String): Boolean {
+        if (number.isBlank()) return false
+
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(number)
+        )
+        return try {
+            context.contentResolver.query(
+                uri,
+                arrayOf(ContactsContract.PhoneLookup._ID),
+                null,
+                null,
+                null
+            )?.use { it.moveToFirst() } ?: false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking saved contact", e)
+            false
+        }
+    }
+
+    fun deleteCallHistoryForNumber(context: Context, number: String): Boolean {
+        if (number.isBlank()) return false
+        return try {
+            val ids = mutableListOf<Long>()
+            context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                arrayOf(CallLog.Calls._ID, CallLog.Calls.NUMBER),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex(CallLog.Calls._ID)
+                val numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER)
+                while (cursor.moveToNext()) {
+                    if (idIndex != -1 && numberIndex != -1 &&
+                        PhoneNumberUtils.areEquivalent(number, cursor.getString(numberIndex) ?: "")) {
+                        ids.add(cursor.getLong(idIndex))
+                    }
+                }
+            }
+            ids.count {
+                context.contentResolver.delete(
+                    CallLog.Calls.CONTENT_URI,
+                    "${CallLog.Calls._ID}=?",
+                    arrayOf(it.toString())
+                ) > 0
+            }.also {
+                RecentCallManager.clearIfMatches(context, number)
+            } > 0
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Call log delete permission not granted", e)
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting call history", e)
+            false
+        }
+    }
+
     fun normalizePhoneNumber(number: String): String {
         return number.replace("[^0-9+]".toRegex(), "")
     }

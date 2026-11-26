@@ -20,7 +20,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.elderphone.app.R
 import com.elderphone.app.data.ContactRepository
-import com.elderphone.app.data.RecentCallManager
 import com.elderphone.app.databinding.ActivityDialpadBinding
 
 class DialpadActivity : AppCompatActivity() {
@@ -209,7 +208,6 @@ class DialpadActivity : AppCompatActivity() {
             if (telecomManager != null && isDefaultDialer()) {
                 Log.d(TAG, "Placing dial-pad call via TelecomManager")
                 telecomManager.placeCall(uri, Bundle())
-                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             } else {
                 Log.d(TAG, "Placing dial-pad call via ACTION_CALL")
@@ -217,7 +215,6 @@ class DialpadActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
-                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             }
         } catch (e: SecurityException) {
@@ -234,7 +231,6 @@ class DialpadActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
-                RecentCallManager.recordCall(this, cleanNumber)
                 finish()
             } catch (e2: Exception) {
                 MainActivity.isNavigatingInternally = false

@@ -116,5 +116,11 @@
     <string name="block_confirm_title">ยืนยันการบล็อกเบอร์</string>
     <string name="block_confirm_msg">ต้องการบล็อกเบอร์ %1$s ใช่หรือไม่?\n\nสายเรียกเข้าจากเบอร์นี้จะถูกตัดสายทิ้งโดยอัตโนมัติ ไม่ส่งเสียงรบกวน</string>
     <string name="btn_confirm_block">บล็อกเบอร์</string>
+    <string name="btn_delete">ลบ</string>
+    <string name="btn_delete_call_history">ลบประวัติการโทร</string>
+    <string name="delete_call_history_title">ลบประวัติการโทร</string>
+    <string name="delete_call_history_message">ต้องการลบประวัติของเบอร์ %1$s ทั้งหมดใช่หรือไม่?</string>
+    <string name="delete_call_history_success">ลบประวัติการโทรแล้ว</string>
+    <string name="delete_call_history_failed">ลบไม่ได้ กรุณาอนุญาตสิทธิ์ประวัติการโทร</string>
 </resources>
 

@@ -187,11 +187,7 @@ object CallManager {
         targets.forEach { endCall(it) }
     }
 
-    /**
-     * Ongoing-call screen: end every call that is still alive (active, dialing, on hold).
-     * Returns true when at least one call was asked to end, i.e. the caller should wait for
-     * the disconnect before closing the screen.
-     */
+    /** End every non-ringing call; if only ringing calls remain, reject all of them. */
     fun hangupAll(): Boolean {
         val live = liveCalls()
         val nonRinging = live.filter { it.compatState() != Call.STATE_RINGING }

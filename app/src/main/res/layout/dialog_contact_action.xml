@@ -190,6 +190,20 @@
             app:iconTint="#E53935"
             app:iconSize="18dp" />
 
+        <!-- Delete this number's call history entries. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnActionDeleteHistory"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:fontFamily="@font/prompt_regular"
+            android:text="@string/btn_delete_call_history"
+            android:textColor="#E53935"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="#E53935"
+            app:iconSize="18dp" />
+
         <!-- 4. Cancel Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnActionCancel"

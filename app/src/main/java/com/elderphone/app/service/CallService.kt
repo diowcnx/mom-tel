@@ -6,6 +6,7 @@ import android.telecom.Call
 import android.telecom.InCallService
 import android.util.Log
 import com.elderphone.app.data.BlockedNumberManager
+import com.elderphone.app.data.ContactRepository
 import com.elderphone.app.data.RecentCallManager
 import com.elderphone.app.ui.IncomingCallActivity
 import com.elderphone.app.ui.OngoingCallActivity
@@ -37,6 +38,32 @@ class CallService : InCallService() {
                 }
                 return
             }
+
+            if (!ContactRepository.hasSavedContactByNumber(this, callerNumber)) {
+                Log.i(TAG, "Auto-rejecting an unknown caller")
+                try {
+                    call.reject(false, null)
+                } catch (e: Exception) {
+                    try {
+                        call.disconnect()
+                    } catch (e2: Exception) {
+                        Log.e(TAG, "Failed to disconnect unknown caller", e2)
+                    }
+                }
+                return
+            }
+        } else if (initialState == Call.STATE_RINGING) {
+            Log.i(TAG, "Auto-rejecting caller without a number")
+            try {
+                call.reject(false, null)
+            } catch (e: Exception) {
+                try {
+                    call.disconnect()
+                } catch (e2: Exception) {
+                    Log.e(TAG, "Failed to disconnect caller without a number", e2)
+                }
+            }
+            return
         }
 
         CallManager.attachService(this)

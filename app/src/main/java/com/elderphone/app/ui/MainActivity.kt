@@ -630,6 +630,7 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.WRITE_CONTACTS,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_CALL_LOG
+            ,Manifest.permission.WRITE_CALL_LOG
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
@@ -848,6 +849,25 @@ class MainActivity : AppCompatActivity() {
                     .setNegativeButton(R.string.btn_cancel, null)
                     .show()
             }
+        }
+
+        dialogBinding.btnActionDeleteHistory.setOnClickListener {
+            vibrate()
+            AlertDialog.Builder(this)
+                .setTitle(R.string.delete_call_history_title)
+                .setMessage(getString(R.string.delete_call_history_message, contact.phoneNumber))
+                .setPositiveButton(R.string.btn_delete) { _, _ ->
+                    val deleted = ContactRepository.deleteCallHistoryForNumber(this, contact.phoneNumber)
+                    if (deleted) {
+                        Toast.makeText(this, R.string.delete_call_history_success, Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                        loadContacts()
+                    } else {
+                        Toast.makeText(this, R.string.delete_call_history_failed, Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton(R.string.btn_cancel, null)
+                .show()
         }
 
         // Cancel button
@@ -1143,14 +1163,12 @@ class MainActivity : AppCompatActivity() {
             if (telecomManager != null && isDefaultDialer()) {
                 Log.d(TAG, "Placing contact call via TelecomManager")
                 telecomManager.placeCall(uri, Bundle())
-                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             } else {
                 Log.d(TAG, "Placing contact call via ACTION_CALL")
                 val intent = Intent(Intent.ACTION_CALL, uri).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
-                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             }
         } catch (e: SecurityException) {
             isNavigatingInternally = false
@@ -1162,7 +1180,6 @@ class MainActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 startActivity(intent)
-                RecentCallManager.recordCall(this, cleanNumber, contact.name)
             } catch (e2: Exception) {
                 isNavigatingInternally = false
                 Toast.makeText(this, getString(R.string.error_call_failed, e2.message.orEmpty()), Toast.LENGTH_SHORT).show()
